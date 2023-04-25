@@ -223,6 +223,9 @@ namespace ts {
                 case SyntaxKind.BooleanKeyword:
                     return factory.createIdentifier("Boolean");
 
+                case SyntaxKind.VectorKeyword:
+                    return factory.createIdentifier("Vector3");
+
                 case SyntaxKind.TemplateLiteralType:
                 case SyntaxKind.StringKeyword:
                     return factory.createIdentifier("String");

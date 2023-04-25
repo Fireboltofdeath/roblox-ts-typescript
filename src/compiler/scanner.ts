@@ -87,6 +87,7 @@ namespace ts {
         assert: SyntaxKind.AssertKeyword,
         bigint: SyntaxKind.BigIntKeyword,
         boolean: SyntaxKind.BooleanKeyword,
+        vector: SyntaxKind.VectorKeyword,
         break: SyntaxKind.BreakKeyword,
         case: SyntaxKind.CaseKeyword,
         catch: SyntaxKind.CatchKeyword,

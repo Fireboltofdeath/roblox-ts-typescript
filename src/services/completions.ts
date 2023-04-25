@@ -3911,6 +3911,7 @@ namespace ts.Completions {
             case SyntaxKind.AnyKeyword:
             case SyntaxKind.BigIntKeyword:
             case SyntaxKind.BooleanKeyword:
+            case SyntaxKind.VectorKeyword:
             case SyntaxKind.DeclareKeyword:
             case SyntaxKind.EnumKeyword:
             case SyntaxKind.GlobalKeyword:
@@ -4465,4 +4466,3 @@ namespace ts.Completions {
     }
 
 }
-

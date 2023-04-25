@@ -1838,6 +1838,7 @@ namespace ts {
         SyntaxKind.AssertsKeyword,
         SyntaxKind.BigIntKeyword,
         SyntaxKind.BooleanKeyword,
+        SyntaxKind.VectorKeyword,
         SyntaxKind.FalseKeyword,
         SyntaxKind.InferKeyword,
         SyntaxKind.KeyOfKeyword,

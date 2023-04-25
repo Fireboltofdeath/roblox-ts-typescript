@@ -4504,3 +4504,9 @@ interface Date {
      */
     toLocaleTimeString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
 }
+
+interface Vector {
+    readonly X: number;
+    readonly Y: number;
+    readonly Z: number;
+}

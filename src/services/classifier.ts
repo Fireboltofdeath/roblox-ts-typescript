@@ -110,6 +110,7 @@ namespace ts {
                     case SyntaxKind.StringKeyword:
                     case SyntaxKind.NumberKeyword:
                     case SyntaxKind.BooleanKeyword:
+                    case SyntaxKind.VectorKeyword:
                     case SyntaxKind.SymbolKeyword:
                         if (angleBracketStack > 0 && !syntacticClassifierAbsent) {
                             // If it looks like we're could be in something generic, don't classify this

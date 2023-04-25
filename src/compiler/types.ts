@@ -167,6 +167,7 @@ namespace ts {
         AsyncKeyword,
         AwaitKeyword,
         BooleanKeyword,
+        VectorKeyword,
         ConstructorKeyword,
         DeclareKeyword,
         GetKeyword,
@@ -560,6 +561,7 @@ namespace ts {
         | SyntaxKind.AwaitKeyword
         | SyntaxKind.BigIntKeyword
         | SyntaxKind.BooleanKeyword
+        | SyntaxKind.VectorKeyword
         | SyntaxKind.BreakKeyword
         | SyntaxKind.CaseKeyword
         | SyntaxKind.CatchKeyword
@@ -656,6 +658,7 @@ namespace ts {
         | SyntaxKind.AnyKeyword
         | SyntaxKind.BigIntKeyword
         | SyntaxKind.BooleanKeyword
+        | SyntaxKind.VectorKeyword
         | SyntaxKind.IntrinsicKeyword
         | SyntaxKind.NeverKeyword
         | SyntaxKind.NumberKeyword
@@ -5607,6 +5610,7 @@ namespace ts {
         NonPrimitive    = 1 << 26,  // intrinsic object type
         TemplateLiteral = 1 << 27,  // Template literal type
         StringMapping   = 1 << 28,  // Uppercase/Lowercase type
+        Vector          = 1 << 29,  // Luau vector type
 
         /* @internal */
         AnyOrUnknown = Any | Unknown,
@@ -5621,9 +5625,9 @@ namespace ts {
         DefinitelyFalsy = StringLiteral | NumberLiteral | BigIntLiteral | BooleanLiteral | Void | Undefined | Null,
         PossiblyFalsy = DefinitelyFalsy | String | Number | BigInt | Boolean,
         /* @internal */
-        Intrinsic = Any | Unknown | String | Number | BigInt | Boolean | BooleanLiteral | ESSymbol | Void | Undefined | Null | Never | NonPrimitive,
+        Intrinsic = Any | Unknown | String | Number | BigInt | Boolean | BooleanLiteral | ESSymbol | Void | Undefined | Null | Never | NonPrimitive | Vector,
         /* @internal */
-        Primitive = String | Number | BigInt | Boolean | Enum | EnumLiteral | ESSymbol | Void | Undefined | Null | Literal | UniqueESSymbol,
+        Primitive = String | Number | BigInt | Boolean | Enum | EnumLiteral | ESSymbol | Void | Undefined | Null | Literal | UniqueESSymbol | Vector,
         StringLike = String | StringLiteral | TemplateLiteral | StringMapping,
         NumberLike = Number | NumberLiteral | Enum,
         BigIntLike = BigInt | BigIntLiteral,

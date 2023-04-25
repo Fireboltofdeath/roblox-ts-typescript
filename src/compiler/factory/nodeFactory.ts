@@ -1031,6 +1031,7 @@ namespace ts {
                 case SyntaxKind.OverrideKeyword:
                 case SyntaxKind.StringKeyword:
                 case SyntaxKind.BooleanKeyword:
+                case SyntaxKind.VectorKeyword:
                 case SyntaxKind.SymbolKeyword:
                 case SyntaxKind.VoidKeyword:
                 case SyntaxKind.UnknownKeyword:
@@ -6516,6 +6517,7 @@ namespace ts {
             case SyntaxKind.StringKeyword:
             case SyntaxKind.ObjectKeyword:
             case SyntaxKind.BooleanKeyword:
+            case SyntaxKind.VectorKeyword:
             case SyntaxKind.SymbolKeyword:
             case SyntaxKind.VoidKeyword:
             case SyntaxKind.TypeParameter:
