@@ -1839,6 +1839,8 @@ namespace ts {
         SyntaxKind.BigIntKeyword,
         SyntaxKind.BooleanKeyword,
         SyntaxKind.VectorKeyword,
+        SyntaxKind.ThreadKeyword,
+        SyntaxKind.UserdataKeyword,
         SyntaxKind.FalseKeyword,
         SyntaxKind.InferKeyword,
         SyntaxKind.KeyOfKeyword,

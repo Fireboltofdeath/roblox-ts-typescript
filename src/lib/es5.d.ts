@@ -4510,3 +4510,7 @@ interface Vector {
     readonly Y: number;
     readonly Z: number;
 }
+
+interface Thread {}
+
+interface Userdata {}

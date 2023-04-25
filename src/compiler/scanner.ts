@@ -88,6 +88,8 @@ namespace ts {
         bigint: SyntaxKind.BigIntKeyword,
         boolean: SyntaxKind.BooleanKeyword,
         vector: SyntaxKind.VectorKeyword,
+        thread: SyntaxKind.ThreadKeyword,
+        userdata: SyntaxKind.UserdataKeyword,
         break: SyntaxKind.BreakKeyword,
         case: SyntaxKind.CaseKeyword,
         catch: SyntaxKind.CatchKeyword,

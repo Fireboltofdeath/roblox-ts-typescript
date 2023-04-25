@@ -69,30 +69,34 @@ namespace ts {
         TypeofEQObject = 1 << 3,      // typeof x === "object"
         TypeofEQFunction = 1 << 4,    // typeof x === "function"
         TypeofEQVector = 1 << 5,      // typeof x === "vector"
-        TypeofEQHostObject = 1 << 6,  // typeof x === "xxx"
-        TypeofNEString = 1 << 7,      // typeof x !== "string"
-        TypeofNENumber = 1 << 8,      // typeof x !== "number"
-        TypeofNEBoolean = 1 << 9,    // typeof x !== "boolean"
-        TypeofNEObject = 1 << 10,     // typeof x !== "object"
-        TypeofNEFunction = 1 << 11,   // typeof x !== "function"
-        TypeofNEVector = 1 << 12,     // typeof x !== "vector"
-        TypeofNEHostObject = 1 << 13, // typeof x !== "xxx"
-        EQUndefined = 1 << 14,        // x === undefined
-        EQNull = 1 << 15,             // x === null
-        EQUndefinedOrNull = 1 << 16,  // x === undefined / x === null
-        NEUndefined = 1 << 17,        // x !== undefined
-        NENull = 1 << 18,             // x !== null
-        NEUndefinedOrNull = 1 << 19,  // x != undefined / x != null
-        Truthy = 1 << 20,             // x
-        Falsy = 1 << 21,              // !x
-        IsUndefined = 1 << 22,        // Contains undefined or intersection with undefined
-        IsNull = 1 << 23,             // Contains null or intersection with null
+        TypeofEQThread = 1 << 6,      // typeof x === "thread"
+        TypeofEQUserdata = 1 << 7,    // typeof x === "userdata"
+        TypeofEQHostObject = 1 << 8,  // typeof x === "xxx"
+        TypeofNEString = 1 << 9,      // typeof x !== "string"
+        TypeofNENumber = 1 << 10,     // typeof x !== "number"
+        TypeofNEBoolean = 1 << 11,    // typeof x !== "boolean"
+        TypeofNEObject = 1 << 12,     // typeof x !== "object"
+        TypeofNEFunction = 1 << 13,   // typeof x !== "function"
+        TypeofNEVector = 1 << 14,     // typeof x !== "vector"
+        TypeofNEThread = 1 << 15,     // typeof x !== "thread"
+        TypeofNEUserdata = 1 << 16,   // typeof x !== "userdata"
+        TypeofNEHostObject = 1 << 17, // typeof x !== "xxx"
+        EQUndefined = 1 << 18,        // x === undefined
+        EQNull = 1 << 19,             // x === null
+        EQUndefinedOrNull = 1 << 20,  // x === undefined / x === null
+        NEUndefined = 1 << 21,        // x !== undefined
+        NENull = 1 << 22,             // x !== null
+        NEUndefinedOrNull = 1 << 23,  // x != undefined / x != null
+        Truthy = 1 << 24,             // x
+        Falsy = 1 << 25,              // !x
+        IsUndefined = 1 << 26,        // Contains undefined or intersection with undefined
+        IsNull = 1 << 27,             // Contains null or intersection with null
         IsUndefinedOrNull = IsUndefined | IsNull,
-        All = (1 << 24) - 1,
+        All = (1 << 28) - 1,
         // The following members encode facts about particular kinds of types for use in the getTypeFacts function.
         // The presence of a particular fact means that the given test is true for some (and possibly all) values
         // of that kind of type.
-        BaseStringStrictFacts = TypeofEQString | TypeofNEVector | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
+        BaseStringStrictFacts = TypeofEQString | TypeofNEVector | TypeofNEThread | TypeofNEUserdata | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
         BaseStringFacts = BaseStringStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
         StringStrictFacts = BaseStringStrictFacts | Truthy | Falsy,
         StringFacts = BaseStringFacts | Truthy,
@@ -100,7 +104,7 @@ namespace ts {
         EmptyStringFacts = BaseStringFacts,
         NonEmptyStringStrictFacts = BaseStringStrictFacts | Truthy,
         NonEmptyStringFacts = BaseStringFacts | Truthy,
-        BaseNumberStrictFacts = TypeofEQNumber | TypeofNEVector | TypeofNEString | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
+        BaseNumberStrictFacts = TypeofEQNumber | TypeofNEVector | TypeofNEThread | TypeofNEUserdata | TypeofNEString | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
         BaseNumberFacts = BaseNumberStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
         NumberStrictFacts = BaseNumberStrictFacts | Truthy | Falsy,
         NumberFacts = BaseNumberFacts | Truthy,
@@ -108,7 +112,7 @@ namespace ts {
         ZeroNumberFacts = BaseNumberFacts,
         NonZeroNumberStrictFacts = BaseNumberStrictFacts | Truthy,
         NonZeroNumberFacts = BaseNumberFacts | Truthy,
-        BaseBooleanStrictFacts = TypeofEQBoolean | TypeofNEVector | TypeofNEString | TypeofNENumber | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
+        BaseBooleanStrictFacts = TypeofEQBoolean | TypeofNEVector | TypeofNEThread | TypeofNEUserdata | TypeofNEString | TypeofNENumber | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
         BaseBooleanFacts = BaseBooleanStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
         BooleanStrictFacts = BaseBooleanStrictFacts | Truthy | Falsy,
         BooleanFacts = BaseBooleanFacts | Truthy,
@@ -116,19 +120,23 @@ namespace ts {
         FalseFacts = BaseBooleanFacts,
         TrueStrictFacts = BaseBooleanStrictFacts | Truthy,
         TrueFacts = BaseBooleanFacts | Truthy,
-        ObjectStrictFacts = TypeofEQObject | TypeofNEVector | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEFunction | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
+        ObjectStrictFacts = TypeofEQObject | TypeofNEVector | TypeofNEThread | TypeofNEUserdata | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEFunction | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
         ObjectFacts = ObjectStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
-        FunctionStrictFacts = TypeofEQFunction | TypeofNEVector | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
+        FunctionStrictFacts = TypeofEQFunction | TypeofNEVector | TypeofNEThread | TypeofNEUserdata | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
         FunctionFacts = FunctionStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
-        VoidFacts = TypeofNEString | TypeofNEVector | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy,
-        UndefinedFacts = TypeofNEString | TypeofNEVector | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy | IsUndefined,
-        NullFacts = TypeofEQObject | TypeofNEVector | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEFunction | TypeofNEHostObject | EQNull | EQUndefinedOrNull | NEUndefined | Falsy | IsNull,
+        VoidFacts = TypeofNEString | TypeofNEVector | TypeofNEThread | TypeofNEUserdata | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy,
+        UndefinedFacts = TypeofNEString | TypeofNEVector | TypeofNEThread | TypeofNEUserdata | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy | IsUndefined,
+        NullFacts = TypeofEQObject | TypeofNEVector | TypeofNEThread | TypeofNEUserdata | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEFunction | TypeofNEHostObject | EQNull | EQUndefinedOrNull | NEUndefined | Falsy | IsNull,
         EmptyObjectStrictFacts = All & ~(EQUndefined | EQNull | EQUndefinedOrNull | IsUndefinedOrNull),
         EmptyObjectFacts = All & ~IsUndefinedOrNull,
         UnknownFacts = All & ~IsUndefinedOrNull,
-        VectorStrictFacts = TypeofEQVector | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEFunction | TypeofNEObject | TypeofNEHostObject | NENull | NEUndefined | NEUndefinedOrNull | Truthy,
+        VectorStrictFacts = TypeofEQVector | TypeofNEThread | TypeofNEUserdata | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEFunction | TypeofNEObject | TypeofNEHostObject | NENull | NEUndefined | NEUndefinedOrNull | Truthy,
         VectorFacts = VectorStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull,
-        AllTypeofNE = TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEVector | NEUndefined,
+        ThreadStrictFacts = TypeofEQThread | TypeofNEBoolean | TypeofNEFunction | TypeofNEString | TypeofNENumber | TypeofNEObject | TypeofNEVector | TypeofNEUserdata | TypeofNEHostObject | NENull | NEUndefined | NEUndefinedOrNull | Truthy,
+        ThreadFacts = ThreadStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull,
+        UserdataStrictFacts = TypeofEQUserdata | TypeofNEThread | TypeofNEBoolean | TypeofNEFunction | TypeofNEString | TypeofNENumber | TypeofNEObject | TypeofNEVector | TypeofNEHostObject | NENull | NEUndefined | NEUndefinedOrNull | Truthy,
+        UserdataFacts = UserdataStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull,
+        AllTypeofNE = TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEVector | TypeofNEThread | NEUndefined,
         // Masks
         OrFactsMask = TypeofEQFunction | TypeofNEObject,
         AndFactsMask = All & ~OrFactsMask,
@@ -141,7 +149,9 @@ namespace ts {
         undefined: TypeFacts.NEUndefined,
         object: TypeFacts.TypeofNEObject,
         function: TypeFacts.TypeofNEFunction,
-        vector: TypeFacts.TypeofNEVector
+        vector: TypeFacts.TypeofNEVector,
+        thread: TypeFacts.TypeofNEThread,
+        userdata: TypeFacts.TypeofNEUserdata
     }));
 
     type TypeSystemEntity = Node | Symbol | Type | Signature;
@@ -812,6 +822,8 @@ namespace ts {
         const booleanType = getUnionType([regularFalseType, regularTrueType]);
         const esSymbolType = createIntrinsicType(TypeFlags.ESSymbol, "symbol");
         const vectorType = createIntrinsicType(TypeFlags.Vector, "vector");
+        const threadType = createIntrinsicType(TypeFlags.Thread, "thread");
+        const userdataType = createIntrinsicType(TypeFlags.Userdata, "userdata");
         const voidType = createIntrinsicType(TypeFlags.Void, "void");
         const neverType = createIntrinsicType(TypeFlags.Never, "never");
         const silentNeverType = createIntrinsicType(TypeFlags.Never, "never", ObjectFlags.NonInferrableType);
@@ -958,6 +970,8 @@ namespace ts {
         let globalBooleanType: ObjectType;
         let globalRegExpType: ObjectType;
         let globalVectorType: ObjectType;
+        let globalThreadType: ObjectType;
+        let globalUserdataType: ObjectType;
         let globalThisType: GenericType;
         let anyArrayType: Type;
         let autoArrayType: Type;
@@ -5132,6 +5146,14 @@ namespace ts {
                 if (type.flags & TypeFlags.Vector) {
                     context.approximateLength += 6;
                     return factory.createKeywordTypeNode(SyntaxKind.VectorKeyword);
+                }
+                if (type.flags & TypeFlags.Thread) {
+                    context.approximateLength += 6;
+                    return factory.createKeywordTypeNode(SyntaxKind.ThreadKeyword);
+                }
+                if (type.flags & TypeFlags.Userdata) {
+                    context.approximateLength += 8;
+                    return factory.createKeywordTypeNode(SyntaxKind.UserdataKeyword);
                 }
                 if (type.flags & TypeFlags.EnumLiteral && !(type.flags & TypeFlags.Union)) {
                     const parentSymbol = getParentOfSymbol(type.symbol)!;
@@ -10842,6 +10864,8 @@ namespace ts {
                 case SyntaxKind.BigIntKeyword:
                 case SyntaxKind.BooleanKeyword:
                 case SyntaxKind.VectorKeyword:
+                case SyntaxKind.ThreadKeyword:
+                case SyntaxKind.UserdataKeyword:
                 case SyntaxKind.SymbolKeyword:
                 case SyntaxKind.ObjectKeyword:
                 case SyntaxKind.VoidKeyword:
@@ -12548,6 +12572,8 @@ namespace ts {
                 t.flags & TypeFlags.BigIntLike ? getGlobalBigIntType() :
                 t.flags & TypeFlags.BooleanLike ? globalBooleanType :
                 t.flags & TypeFlags.Vector ? globalVectorType :
+                t.flags & TypeFlags.Thread ? globalThreadType :
+                t.flags & TypeFlags.Userdata ? globalUserdataType :
                 t.flags & TypeFlags.ESSymbolLike ? getGlobalESSymbolType() :
                 t.flags & TypeFlags.NonPrimitive ? emptyObjectType :
                 t.flags & TypeFlags.Index ? keyofConstraintType :
@@ -16981,6 +17007,10 @@ namespace ts {
                     return booleanType;
                 case SyntaxKind.VectorKeyword:
                     return vectorType;
+                case SyntaxKind.ThreadKeyword:
+                    return threadType;
+                case SyntaxKind.UserdataKeyword:
+                    return userdataType;
                 case SyntaxKind.SymbolKeyword:
                     return esSymbolType;
                 case SyntaxKind.VoidKeyword:
@@ -18598,6 +18628,8 @@ namespace ts {
             if (s & TypeFlags.Null && (!strictNullChecks && !(t & TypeFlags.UnionOrIntersection) || t & TypeFlags.Null)) return true;
             if (s & TypeFlags.Object && t & TypeFlags.NonPrimitive && !(relation === strictSubtypeRelation && isEmptyAnonymousObjectType(source) && !(getObjectFlags(source) & ObjectFlags.FreshLiteral))) return true;
             if (s & TypeFlags.Vector && t & TypeFlags.Vector) return true;
+            if (s & TypeFlags.Thread && t & TypeFlags.Thread) return true;
+            if (s & TypeFlags.Userdata && t & TypeFlags.Userdata) return true;
             if (relation === assignableRelation || relation === comparableRelation) {
                 if (s & TypeFlags.Any) return true;
                 // Type number or any numeric literal type is assignable to any numeric enum type or any
@@ -18983,6 +19015,7 @@ namespace ts {
                     (globalNumberType === source && numberType === target) ||
                     (globalBooleanType === source && booleanType === target) ||
                     (globalVectorType === source && vectorType === target) ||
+                    (globalThreadType === source && threadType === target) ||
                     (getGlobalESSymbolType() === source && esSymbolType === target)) {
                     reportError(Diagnostics._0_is_a_primitive_but_1_is_a_wrapper_object_Prefer_using_0_when_possible, targetType, sourceType);
                 }
@@ -24002,6 +24035,12 @@ namespace ts {
             if (flags & TypeFlags.Vector) {
                 return strictNullChecks ? TypeFacts.VectorStrictFacts : TypeFacts.VectorFacts;
             }
+            if (flags & TypeFlags.Thread) {
+                return strictNullChecks ? TypeFacts.ThreadStrictFacts : TypeFacts.ThreadFacts;
+            }
+            if (flags & TypeFlags.Userdata) {
+                return strictNullChecks ? TypeFacts.UserdataStrictFacts : TypeFacts.UserdataFacts;
+            }
             if (flags & TypeFlags.Void) {
                 return TypeFacts.VoidFacts;
             }
@@ -25582,6 +25621,8 @@ namespace ts {
                     case "number": return narrowTypeByTypeFacts(type, numberType, TypeFacts.TypeofEQNumber);
                     case "boolean": return narrowTypeByTypeFacts(type, booleanType, TypeFacts.TypeofEQBoolean);
                     case "vector": return narrowTypeByTypeFacts(type, vectorType, TypeFacts.TypeofEQVector);
+                    case "thread": return narrowTypeByTypeFacts(type, threadType, TypeFacts.TypeofEQThread);
+                    case "userdata": return narrowTypeByTypeFacts(type, userdataType, TypeFacts.TypeofEQUserdata);
                     case "object": return type.flags & TypeFlags.Any ? type : getUnionType([narrowTypeByTypeFacts(type, nonPrimitiveType, TypeFacts.TypeofEQObject), narrowTypeByTypeFacts(type, nullType, TypeFacts.EQNull)]);
                     case "function": return type.flags & TypeFlags.Any ? type : narrowTypeByTypeFacts(type, globalFunctionType, TypeFacts.TypeofEQFunction);
                     case "undefined": return narrowTypeByTypeFacts(type, undefinedType, TypeFacts.EQUndefined);
@@ -44242,6 +44283,8 @@ namespace ts {
             globalBooleanType = getGlobalType("Boolean" as __String, /*arity*/ 0, /*reportErrors*/ true);
             globalRegExpType = getGlobalType("RegExp" as __String, /*arity*/ 0, /*reportErrors*/ true);
             globalVectorType = getGlobalType("Vector" as __String, /*arity*/ 0, /*reportErrors*/ true);
+            globalThreadType = getGlobalType("Thread" as __String, /*arity*/ 0, /*reportErrors*/ true);
+            globalUserdataType = getGlobalType("Userdata" as __String, /*arity*/ 0, /*reportErrors*/ true);
             anyArrayType = createArrayType(anyType);
 
             autoArrayType = createArrayType(autoType);

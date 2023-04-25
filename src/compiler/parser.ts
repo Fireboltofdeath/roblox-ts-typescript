@@ -4074,6 +4074,8 @@ namespace ts {
                 case SyntaxKind.SymbolKeyword:
                 case SyntaxKind.BooleanKeyword:
                 case SyntaxKind.VectorKeyword:
+                case SyntaxKind.ThreadKeyword:
+                case SyntaxKind.UserdataKeyword:
                 case SyntaxKind.UndefinedKeyword:
                 case SyntaxKind.NeverKeyword:
                 case SyntaxKind.ObjectKeyword:
@@ -4144,6 +4146,8 @@ namespace ts {
                 case SyntaxKind.BigIntKeyword:
                 case SyntaxKind.BooleanKeyword:
                 case SyntaxKind.VectorKeyword:
+                case SyntaxKind.ThreadKeyword:
+                case SyntaxKind.UserdataKeyword:
                 case SyntaxKind.ReadonlyKeyword:
                 case SyntaxKind.SymbolKeyword:
                 case SyntaxKind.UniqueKeyword:

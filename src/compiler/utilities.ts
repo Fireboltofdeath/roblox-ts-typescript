@@ -1310,6 +1310,8 @@ namespace ts {
             case SyntaxKind.StringKeyword:
             case SyntaxKind.BooleanKeyword:
             case SyntaxKind.VectorKeyword:
+            case SyntaxKind.ThreadKeyword:
+            case SyntaxKind.UserdataKeyword:
             case SyntaxKind.SymbolKeyword:
             case SyntaxKind.ObjectKeyword:
             case SyntaxKind.UndefinedKeyword:
@@ -5826,6 +5828,8 @@ namespace ts {
             || kind === SyntaxKind.ObjectKeyword
             || kind === SyntaxKind.BooleanKeyword
             || kind === SyntaxKind.VectorKeyword
+            || kind === SyntaxKind.ThreadKeyword
+            || kind === SyntaxKind.UserdataKeyword
             || kind === SyntaxKind.StringKeyword
             || kind === SyntaxKind.SymbolKeyword
             || kind === SyntaxKind.VoidKeyword

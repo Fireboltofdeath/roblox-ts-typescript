@@ -168,6 +168,8 @@ namespace ts {
         AwaitKeyword,
         BooleanKeyword,
         VectorKeyword,
+        ThreadKeyword,
+        UserdataKeyword,
         ConstructorKeyword,
         DeclareKeyword,
         GetKeyword,
@@ -562,6 +564,8 @@ namespace ts {
         | SyntaxKind.BigIntKeyword
         | SyntaxKind.BooleanKeyword
         | SyntaxKind.VectorKeyword
+        | SyntaxKind.ThreadKeyword
+        | SyntaxKind.UserdataKeyword
         | SyntaxKind.BreakKeyword
         | SyntaxKind.CaseKeyword
         | SyntaxKind.CatchKeyword
@@ -659,6 +663,8 @@ namespace ts {
         | SyntaxKind.BigIntKeyword
         | SyntaxKind.BooleanKeyword
         | SyntaxKind.VectorKeyword
+        | SyntaxKind.ThreadKeyword
+        | SyntaxKind.UserdataKeyword
         | SyntaxKind.IntrinsicKeyword
         | SyntaxKind.NeverKeyword
         | SyntaxKind.NumberKeyword
@@ -5611,6 +5617,8 @@ namespace ts {
         TemplateLiteral = 1 << 27,  // Template literal type
         StringMapping   = 1 << 28,  // Uppercase/Lowercase type
         Vector          = 1 << 29,  // Luau vector type
+        Thread          = 1 << 30,  // Luau thread type
+        Userdata        = 1 << 31,  // Luau userdata type
 
         /* @internal */
         AnyOrUnknown = Any | Unknown,
@@ -5625,9 +5633,9 @@ namespace ts {
         DefinitelyFalsy = StringLiteral | NumberLiteral | BigIntLiteral | BooleanLiteral | Void | Undefined | Null,
         PossiblyFalsy = DefinitelyFalsy | String | Number | BigInt | Boolean,
         /* @internal */
-        Intrinsic = Any | Unknown | String | Number | BigInt | Boolean | BooleanLiteral | ESSymbol | Void | Undefined | Null | Never | NonPrimitive | Vector,
+        Intrinsic = Any | Unknown | String | Number | BigInt | Boolean | BooleanLiteral | ESSymbol | Void | Undefined | Null | Never | NonPrimitive | Vector | Thread | Userdata,
         /* @internal */
-        Primitive = String | Number | BigInt | Boolean | Enum | EnumLiteral | ESSymbol | Void | Undefined | Null | Literal | UniqueESSymbol | Vector,
+        Primitive = String | Number | BigInt | Boolean | Enum | EnumLiteral | ESSymbol | Void | Undefined | Null | Literal | UniqueESSymbol | Vector | Thread | Userdata,
         StringLike = String | StringLiteral | TemplateLiteral | StringMapping,
         NumberLike = Number | NumberLiteral | Enum,
         BigIntLike = BigInt | BigIntLiteral,

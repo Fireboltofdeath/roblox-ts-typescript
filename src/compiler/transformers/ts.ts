@@ -415,6 +415,8 @@ namespace ts {
                 case SyntaxKind.UnknownKeyword:
                 case SyntaxKind.BooleanKeyword:
                 case SyntaxKind.VectorKeyword:
+                case SyntaxKind.ThreadKeyword:
+                case SyntaxKind.UserdataKeyword:
                 case SyntaxKind.StringKeyword:
                 case SyntaxKind.NumberKeyword:
                 case SyntaxKind.NeverKeyword:
