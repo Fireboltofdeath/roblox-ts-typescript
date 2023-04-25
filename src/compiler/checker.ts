@@ -1083,6 +1083,17 @@ namespace ts {
             [".json", ".json"],
         ];
 
+        const operatorOverloadSymbols: ESMap<SyntaxKind, string> = new Map([
+            [SyntaxKind.PlusToken, "__add"],
+            [SyntaxKind.PlusEqualsToken, "__add"],
+            [SyntaxKind.MinusToken, "__sub"],
+            [SyntaxKind.MinusEqualsToken, "__sub"],
+            [SyntaxKind.AsteriskToken, "__mul"],
+            [SyntaxKind.AsteriskEqualsToken, "__mul"],
+            [SyntaxKind.SlashToken, "__div"],
+            [SyntaxKind.SlashEqualsToken, "__div"]
+        ]);
+
         initializeTypeChecker();
 
         return checker;
@@ -34486,6 +34497,27 @@ namespace ts {
             return checkBinaryLikeExpressionWorker(left, operatorToken, right, leftType, rightType, errorNode);
         }
 
+        function checkBinaryOperatorOverloading(operator: SyntaxKind, leftType: Type, rightType: Type): Type | undefined {
+            const overloadSymbol = operatorOverloadSymbols.get(operator);
+            if (!overloadSymbol) return;
+
+            const results: Type[] = [];
+            const overload = getTypeOfPropertyOfType(leftType, getPropertyNameForKnownSymbolName(overloadSymbol));
+            if (overload) {
+                const signatures = getSignaturesOfType(overload, SignatureKind.Call);
+                for (const signature of signatures) {
+                    const parameterType = getTypeOfParameter(signature.parameters[0]);
+                    if (forEachType(rightType, (t) => isTypeAssignableTo(t, parameterType))) {
+                        results.push(getReturnTypeOfSignature(signature));
+                    }
+                }
+            }
+
+            if (results.length > 0) {
+                return getUnionType(results);
+            }
+        }
+
         function checkBinaryLikeExpressionWorker(
             left: Expression,
             operatorToken: Node,
@@ -34535,6 +34567,11 @@ namespace ts {
                         return numberType;
                     }
                     else {
+                        const overloadResult = checkBinaryOperatorOverloading(operator, leftType, rightType);
+                        if (overloadResult) {
+                            return overloadResult;
+                        }
+
                         // otherwise just check each operand separately and report errors as normal
                         const leftOk = checkArithmeticOperandType(left, leftType, Diagnostics.The_left_hand_side_of_an_arithmetic_operation_must_be_of_type_any_number_bigint_or_an_enum_type, /*isAwaitValid*/ true);
                         const rightOk = checkArithmeticOperandType(right, rightType, Diagnostics.The_right_hand_side_of_an_arithmetic_operation_must_be_of_type_any_number_bigint_or_an_enum_type, /*isAwaitValid*/ true);
@@ -34580,6 +34617,11 @@ namespace ts {
                     if (!isTypeAssignableToKind(leftType, TypeFlags.StringLike) && !isTypeAssignableToKind(rightType, TypeFlags.StringLike)) {
                         leftType = checkNonNullType(leftType, left);
                         rightType = checkNonNullType(rightType, right);
+                    }
+
+                    const overloadResult = checkBinaryOperatorOverloading(operator, leftType, rightType);
+                    if (overloadResult) {
+                        return overloadResult;
                     }
 
                     let resultType: Type | undefined;
