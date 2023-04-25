@@ -70,31 +70,33 @@ namespace ts {
         TypeofEQSymbol = 1 << 4,      // typeof x === "symbol"
         TypeofEQObject = 1 << 5,      // typeof x === "object"
         TypeofEQFunction = 1 << 6,    // typeof x === "function"
-        TypeofEQHostObject = 1 << 7,  // typeof x === "xxx"
-        TypeofNEString = 1 << 8,      // typeof x !== "string"
-        TypeofNENumber = 1 << 9,      // typeof x !== "number"
-        TypeofNEBigInt = 1 << 10,     // typeof x !== "bigint"
-        TypeofNEBoolean = 1 << 11,    // typeof x !== "boolean"
-        TypeofNESymbol = 1 << 12,     // typeof x !== "symbol"
-        TypeofNEObject = 1 << 13,     // typeof x !== "object"
-        TypeofNEFunction = 1 << 14,   // typeof x !== "function"
-        TypeofNEHostObject = 1 << 15, // typeof x !== "xxx"
-        EQUndefined = 1 << 16,        // x === undefined
-        EQNull = 1 << 17,             // x === null
-        EQUndefinedOrNull = 1 << 18,  // x === undefined / x === null
-        NEUndefined = 1 << 19,        // x !== undefined
-        NENull = 1 << 20,             // x !== null
-        NEUndefinedOrNull = 1 << 21,  // x != undefined / x != null
-        Truthy = 1 << 22,             // x
-        Falsy = 1 << 23,              // !x
-        IsUndefined = 1 << 24,        // Contains undefined or intersection with undefined
-        IsNull = 1 << 25,             // Contains null or intersection with null
+        TypeofEQVector = 1 << 7,      // typeof x === "vector"
+        TypeofEQHostObject = 1 << 8,  // typeof x === "xxx"
+        TypeofNEString = 1 << 9,      // typeof x !== "string"
+        TypeofNENumber = 1 << 10,      // typeof x !== "number"
+        TypeofNEBigInt = 1 << 11,     // typeof x !== "bigint"
+        TypeofNEBoolean = 1 << 12,    // typeof x !== "boolean"
+        TypeofNESymbol = 1 << 13,     // typeof x !== "symbol"
+        TypeofNEObject = 1 << 14,     // typeof x !== "object"
+        TypeofNEFunction = 1 << 15,   // typeof x !== "function"
+        TypeofNEVector = 1 << 16,     // typeof x !== "vector"
+        TypeofNEHostObject = 1 << 17, // typeof x !== "xxx"
+        EQUndefined = 1 << 18,        // x === undefined
+        EQNull = 1 << 19,             // x === null
+        EQUndefinedOrNull = 1 << 20,  // x === undefined / x === null
+        NEUndefined = 1 << 21,        // x !== undefined
+        NENull = 1 << 22,             // x !== null
+        NEUndefinedOrNull = 1 << 23,  // x != undefined / x != null
+        Truthy = 1 << 24,             // x
+        Falsy = 1 << 25,              // !x
+        IsUndefined = 1 << 26,        // Contains undefined or intersection with undefined
+        IsNull = 1 << 27,             // Contains null or intersection with null
         IsUndefinedOrNull = IsUndefined | IsNull,
         All = (1 << 27) - 1,
         // The following members encode facts about particular kinds of types for use in the getTypeFacts function.
         // The presence of a particular fact means that the given test is true for some (and possibly all) values
         // of that kind of type.
-        BaseStringStrictFacts = TypeofEQString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
+        BaseStringStrictFacts = TypeofEQString | TypeofNEVector | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
         BaseStringFacts = BaseStringStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
         StringStrictFacts = BaseStringStrictFacts | Truthy | Falsy,
         StringFacts = BaseStringFacts | Truthy,
@@ -102,7 +104,7 @@ namespace ts {
         EmptyStringFacts = BaseStringFacts,
         NonEmptyStringStrictFacts = BaseStringStrictFacts | Truthy,
         NonEmptyStringFacts = BaseStringFacts | Truthy,
-        BaseNumberStrictFacts = TypeofEQNumber | TypeofNEString | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
+        BaseNumberStrictFacts = TypeofEQNumber | TypeofNEVector | TypeofNEString | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
         BaseNumberFacts = BaseNumberStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
         NumberStrictFacts = BaseNumberStrictFacts | Truthy | Falsy,
         NumberFacts = BaseNumberFacts | Truthy,
@@ -110,7 +112,7 @@ namespace ts {
         ZeroNumberFacts = BaseNumberFacts,
         NonZeroNumberStrictFacts = BaseNumberStrictFacts | Truthy,
         NonZeroNumberFacts = BaseNumberFacts | Truthy,
-        BaseBigIntStrictFacts = TypeofEQBigInt | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
+        BaseBigIntStrictFacts = TypeofEQBigInt | TypeofNEVector | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
         BaseBigIntFacts = BaseBigIntStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
         BigIntStrictFacts = BaseBigIntStrictFacts | Truthy | Falsy,
         BigIntFacts = BaseBigIntFacts | Truthy,
@@ -118,7 +120,7 @@ namespace ts {
         ZeroBigIntFacts = BaseBigIntFacts,
         NonZeroBigIntStrictFacts = BaseBigIntStrictFacts | Truthy,
         NonZeroBigIntFacts = BaseBigIntFacts | Truthy,
-        BaseBooleanStrictFacts = TypeofEQBoolean | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
+        BaseBooleanStrictFacts = TypeofEQBoolean | TypeofNEVector | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
         BaseBooleanFacts = BaseBooleanStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
         BooleanStrictFacts = BaseBooleanStrictFacts | Truthy | Falsy,
         BooleanFacts = BaseBooleanFacts | Truthy,
@@ -126,19 +128,21 @@ namespace ts {
         FalseFacts = BaseBooleanFacts,
         TrueStrictFacts = BaseBooleanStrictFacts | Truthy,
         TrueFacts = BaseBooleanFacts | Truthy,
-        SymbolStrictFacts = TypeofEQSymbol | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
+        SymbolStrictFacts = TypeofEQSymbol | TypeofNEVector | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
         SymbolFacts = SymbolStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
-        ObjectStrictFacts = TypeofEQObject | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEFunction | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
+        ObjectStrictFacts = TypeofEQObject | TypeofNEVector | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEFunction | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
         ObjectFacts = ObjectStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
-        FunctionStrictFacts = TypeofEQFunction | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
+        FunctionStrictFacts = TypeofEQFunction | TypeofNEVector | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
         FunctionFacts = FunctionStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
-        VoidFacts = TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy,
-        UndefinedFacts = TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy | IsUndefined,
-        NullFacts = TypeofEQObject | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEFunction | TypeofNEHostObject | EQNull | EQUndefinedOrNull | NEUndefined | Falsy | IsNull,
+        VoidFacts = TypeofNEString | TypeofNEVector | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy,
+        UndefinedFacts = TypeofNEString | TypeofNEVector | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy | IsUndefined,
+        NullFacts = TypeofEQObject | TypeofNEVector | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEFunction | TypeofNEHostObject | EQNull | EQUndefinedOrNull | NEUndefined | Falsy | IsNull,
         EmptyObjectStrictFacts = All & ~(EQUndefined | EQNull | EQUndefinedOrNull | IsUndefinedOrNull),
         EmptyObjectFacts = All & ~IsUndefinedOrNull,
         UnknownFacts = All & ~IsUndefinedOrNull,
-        AllTypeofNE = TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | NEUndefined,
+        VectorStrictFacts = TypeofEQVector | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNEFunction | TypeofNESymbol | TypeofNEObject | TypeofNEHostObject | NENull | NEUndefined | NEUndefinedOrNull | Truthy,
+        VectorFacts = VectorStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull,
+        AllTypeofNE = TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEVector | NEUndefined,
         // Masks
         OrFactsMask = TypeofEQFunction | TypeofNEObject,
         AndFactsMask = All & ~OrFactsMask,
@@ -152,7 +156,8 @@ namespace ts {
         symbol: TypeFacts.TypeofNESymbol,
         undefined: TypeFacts.NEUndefined,
         object: TypeFacts.TypeofNEObject,
-        function: TypeFacts.TypeofNEFunction
+        function: TypeFacts.TypeofNEFunction,
+        vector: TypeFacts.TypeofNEVector
     }));
 
     type TypeSystemEntity = Node | Symbol | Type | Signature;
@@ -24019,6 +24024,9 @@ namespace ts {
                         strictNullChecks ? TypeFacts.FunctionStrictFacts : TypeFacts.FunctionFacts :
                         strictNullChecks ? TypeFacts.ObjectStrictFacts : TypeFacts.ObjectFacts;
             }
+            if (flags & TypeFlags.Vector) {
+                return strictNullChecks ? TypeFacts.VectorStrictFacts : TypeFacts.VectorFacts;
+            }
             if (flags & TypeFlags.Void) {
                 return TypeFacts.VoidFacts;
             }
@@ -25603,6 +25611,7 @@ namespace ts {
                     case "bigint": return narrowTypeByTypeFacts(type, bigintType, TypeFacts.TypeofEQBigInt);
                     case "boolean": return narrowTypeByTypeFacts(type, booleanType, TypeFacts.TypeofEQBoolean);
                     case "symbol": return narrowTypeByTypeFacts(type, esSymbolType, TypeFacts.TypeofEQSymbol);
+                    case "vector": return narrowTypeByTypeFacts(type, vectorType, TypeFacts.TypeofEQVector);
                     case "object": return type.flags & TypeFlags.Any ? type : getUnionType([narrowTypeByTypeFacts(type, nonPrimitiveType, TypeFacts.TypeofEQObject), narrowTypeByTypeFacts(type, nullType, TypeFacts.EQNull)]);
                     case "function": return type.flags & TypeFlags.Any ? type : narrowTypeByTypeFacts(type, globalFunctionType, TypeFacts.TypeofEQFunction);
                     case "undefined": return narrowTypeByTypeFacts(type, undefinedType, TypeFacts.EQUndefined);
@@ -40108,6 +40117,7 @@ namespace ts {
                 case "never":
                 case "number":
                 case "bigint":
+                case "vector":
                 case "boolean":
                 case "string":
                 case "symbol":
