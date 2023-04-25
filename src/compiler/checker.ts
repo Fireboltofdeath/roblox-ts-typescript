@@ -9145,7 +9145,7 @@ namespace ts {
             // right hand expression is of a type parameter type.
             if (isVariableDeclaration(declaration) && declaration.parent.parent.kind === SyntaxKind.ForInStatement) {
                 const indexType = getIndexType(getNonNullableTypeIfNeeded(checkExpression(declaration.parent.parent.expression, /*checkMode*/ checkMode)));
-                return indexType.flags & (TypeFlags.TypeParameter | TypeFlags.Index) ? getExtractStringType(indexType) : stringType;
+                return indexType.flags & (TypeFlags.TypeParameter | TypeFlags.Index) ? getExtractStringType(indexType) : unknownType;
             }
 
             if (isVariableDeclaration(declaration) && declaration.parent.parent.kind === SyntaxKind.ForOfStatement) {
@@ -24185,7 +24185,7 @@ namespace ts {
             const { parent } = node;
             switch (parent.kind) {
                 case SyntaxKind.ForInStatement:
-                    return stringType;
+                    return unknownType;
                 case SyntaxKind.ForOfStatement:
                     return checkRightHandSideOfForOf(parent as ForOfStatement) || errorType;
                 case SyntaxKind.BinaryExpression:
@@ -24228,7 +24228,7 @@ namespace ts {
                 return getTypeOfInitializer(node.initializer);
             }
             if (node.parent.parent.kind === SyntaxKind.ForInStatement) {
-                return stringType;
+                return unknownType;
             }
             if (node.parent.parent.kind === SyntaxKind.ForOfStatement) {
                 return checkRightHandSideOfForOf(node.parent.parent) || errorType;
