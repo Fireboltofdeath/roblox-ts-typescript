@@ -4059,9 +4059,9 @@ namespace ts {
             return finishNode(factory.createImportTypeNode(type, assertions, qualifier, typeArguments, isTypeOf), pos);
         }
 
-        function nextTokenIsNumericOrBigIntLiteral() {
+        function nextTokenIsNumericLiteral() {
             nextToken();
-            return token() === SyntaxKind.NumericLiteral || token() === SyntaxKind.BigIntLiteral;
+            return token() === SyntaxKind.NumericLiteral;
         }
 
         function parseNonArrayType(): TypeNode {
@@ -4070,7 +4070,6 @@ namespace ts {
                 case SyntaxKind.UnknownKeyword:
                 case SyntaxKind.StringKeyword:
                 case SyntaxKind.NumberKeyword:
-                case SyntaxKind.BigIntKeyword:
                 case SyntaxKind.SymbolKeyword:
                 case SyntaxKind.BooleanKeyword:
                 case SyntaxKind.VectorKeyword:
@@ -4100,13 +4099,12 @@ namespace ts {
                 case SyntaxKind.NoSubstitutionTemplateLiteral:
                 case SyntaxKind.StringLiteral:
                 case SyntaxKind.NumericLiteral:
-                case SyntaxKind.BigIntLiteral:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.NullKeyword:
                     return parseLiteralTypeNode();
                 case SyntaxKind.MinusToken:
-                    return lookAhead(nextTokenIsNumericOrBigIntLiteral) ? parseLiteralTypeNode(/*negative*/ true) : parseTypeReference();
+                    return lookAhead(nextTokenIsNumericLiteral) ? parseLiteralTypeNode(/*negative*/ true) : parseTypeReference();
                 case SyntaxKind.VoidKeyword:
                     return parseTokenNode<TypeNode>();
                 case SyntaxKind.ThisKeyword: {
@@ -4143,7 +4141,6 @@ namespace ts {
                 case SyntaxKind.UnknownKeyword:
                 case SyntaxKind.StringKeyword:
                 case SyntaxKind.NumberKeyword:
-                case SyntaxKind.BigIntKeyword:
                 case SyntaxKind.BooleanKeyword:
                 case SyntaxKind.VectorKeyword:
                 case SyntaxKind.ThreadKeyword:
@@ -4165,7 +4162,6 @@ namespace ts {
                 case SyntaxKind.NewKeyword:
                 case SyntaxKind.StringLiteral:
                 case SyntaxKind.NumericLiteral:
-                case SyntaxKind.BigIntLiteral:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.ObjectKeyword:
@@ -4182,7 +4178,7 @@ namespace ts {
                 case SyntaxKind.FunctionKeyword:
                     return !inStartOfParameter;
                 case SyntaxKind.MinusToken:
-                    return !inStartOfParameter && lookAhead(nextTokenIsNumericOrBigIntLiteral);
+                    return !inStartOfParameter && lookAhead(nextTokenIsNumericLiteral);
                 case SyntaxKind.OpenParenToken:
                     // Only consider '(' the start of a type if followed by ')', '...', an identifier, a modifier,
                     // or something that starts a type. We don't want to consider things like '(1)' a type.
@@ -4455,7 +4451,6 @@ namespace ts {
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.NumericLiteral:
-                case SyntaxKind.BigIntLiteral:
                 case SyntaxKind.StringLiteral:
                 case SyntaxKind.NoSubstitutionTemplateLiteral:
                 case SyntaxKind.TemplateHead:
@@ -6032,7 +6027,6 @@ namespace ts {
         function parsePrimaryExpression(): PrimaryExpression {
             switch (token()) {
                 case SyntaxKind.NumericLiteral:
-                case SyntaxKind.BigIntLiteral:
                 case SyntaxKind.StringLiteral:
                 case SyntaxKind.NoSubstitutionTemplateLiteral:
                     return parseLiteralNode();
@@ -6578,7 +6572,7 @@ namespace ts {
 
         function nextTokenIsIdentifierOrKeywordOrLiteralOnSameLine() {
             nextToken();
-            return (tokenIsIdentifierOrKeyword(token()) || token() === SyntaxKind.NumericLiteral || token() === SyntaxKind.BigIntLiteral || token() === SyntaxKind.StringLiteral) && !scanner.hasPrecedingLineBreak();
+            return (tokenIsIdentifierOrKeyword(token()) || token() === SyntaxKind.NumericLiteral || token() === SyntaxKind.StringLiteral) && !scanner.hasPrecedingLineBreak();
         }
 
         function isDeclaration(): boolean {

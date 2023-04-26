@@ -3628,6 +3628,5 @@ namespace ts.server.protocol {
         jsxAttribute = 22,
         jsxText = 23,
         jsxAttributeStringLiteralValue = 24,
-        bigintLiteral = 25,
     }
 }

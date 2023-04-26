@@ -134,9 +134,6 @@ namespace ts.codefix {
         else if (type.isNumberLiteral()) {
             return factory.createNumericLiteral(type.value);
         }
-        else if (type.flags & TypeFlags.BigIntLiteral) {
-            return factory.createBigIntLiteral((type as BigIntLiteralType).value);
-        }
         else if (type.isUnion()) {
             return firstDefined(type.types, t => getDefaultValueFromType(checker, t));
         }

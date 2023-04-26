@@ -661,12 +661,11 @@ namespace ts.Completions {
         });
     }
 
-    function completionNameForLiteral(sourceFile: SourceFile, preferences: UserPreferences, literal: string | number | PseudoBigInt): string {
-        return typeof literal === "object" ? pseudoBigIntToString(literal) + "n" :
-            isString(literal) ? quote(sourceFile, preferences, literal) : JSON.stringify(literal);
+    function completionNameForLiteral(sourceFile: SourceFile, preferences: UserPreferences, literal: string | number): string {
+        return isString(literal) ? quote(sourceFile, preferences, literal) : JSON.stringify(literal);
     }
 
-    function createCompletionEntryForLiteral(sourceFile: SourceFile, preferences: UserPreferences, literal: string | number | PseudoBigInt): CompletionEntry {
+    function createCompletionEntryForLiteral(sourceFile: SourceFile, preferences: UserPreferences, literal: string | number): CompletionEntry {
         return { name: completionNameForLiteral(sourceFile, preferences, literal), kind: ScriptElementKind.string, kindModifiers: ScriptElementKindModifier.none, sortText: SortText.LocationPriority };
     }
 
@@ -1576,7 +1575,7 @@ namespace ts.Completions {
         entryId: CompletionEntryIdentifier,
         host: LanguageServiceHost,
         preferences: UserPreferences,
-    ): SymbolCompletion | { type: "request", request: Request } | { type: "literal", literal: string | number | PseudoBigInt } | { type: "none" } {
+    ): SymbolCompletion | { type: "request", request: Request } | { type: "literal", literal: string | number } | { type: "none" } {
         if (entryId.data) {
             const autoImport = getAutoImportSymbolFromCompletionEntryData(entryId.name, entryId.data, program, host);
             if (autoImport) {
@@ -1818,7 +1817,7 @@ namespace ts.Completions {
         readonly isNewIdentifierLocation: boolean;
         readonly location: Node;
         readonly keywordFilters: KeywordCompletionFilters;
-        readonly literals: readonly (string | number | PseudoBigInt)[];
+        readonly literals: readonly (string | number)[];
         readonly symbolToOriginInfoMap: SymbolOriginInfoMap;
         readonly recommendedCompletion: Symbol | undefined;
         readonly previousToken: Node | undefined;
@@ -2891,8 +2890,7 @@ namespace ts.Completions {
             const result = isInStringOrRegularExpressionOrTemplateLiteral(contextToken) ||
                 isSolelyIdentifierDefinitionLocation(contextToken) ||
                 isDotOfNumericLiteral(contextToken) ||
-                isInJsxText(contextToken) ||
-                isBigIntLiteral(contextToken);
+                isInJsxText(contextToken);
             log("getCompletionsAtPosition: isCompletionListBlocker: " + (timestamp() - start));
             return result;
         }
@@ -3909,7 +3907,6 @@ namespace ts.Completions {
         switch (kind) {
             case SyntaxKind.AbstractKeyword:
             case SyntaxKind.AnyKeyword:
-            case SyntaxKind.BigIntKeyword:
             case SyntaxKind.BooleanKeyword:
             case SyntaxKind.VectorKeyword:
             case SyntaxKind.ThreadKeyword:

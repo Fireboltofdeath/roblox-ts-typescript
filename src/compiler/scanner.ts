@@ -85,7 +85,6 @@ namespace ts {
         as: SyntaxKind.AsKeyword,
         asserts: SyntaxKind.AssertsKeyword,
         assert: SyntaxKind.AssertKeyword,
-        bigint: SyntaxKind.BigIntKeyword,
         boolean: SyntaxKind.BooleanKeyword,
         vector: SyntaxKind.VectorKeyword,
         thread: SyntaxKind.ThreadKeyword,
@@ -1117,7 +1116,7 @@ namespace ts {
             }
             else {
                 tokenValue = result;
-                const type = checkBigIntSuffix(); // if value is an integer, check whether it is a bigint
+                const type = checkNumber();
                 checkForIdentifierStartAfterNumericLiteral(start);
                 return { type, value: tokenValue };
             }
@@ -1590,26 +1589,15 @@ namespace ts {
             return value;
         }
 
-        function checkBigIntSuffix(): SyntaxKind {
-            if (text.charCodeAt(pos) === CharacterCodes.n) {
-                tokenValue += "n";
-                // Use base 10 instead of base 2 or base 8 for shorter literals
-                if (tokenFlags & TokenFlags.BinaryOrOctalSpecifier) {
-                    tokenValue = parsePseudoBigInt(tokenValue) + "n";
-                }
-                pos++;
-                return SyntaxKind.BigIntLiteral;
-            }
-            else { // not a bigint, so can convert to number in simplified form
-                // Number() may not support 0b or 0o, so use parseInt() instead
-                const numericValue = tokenFlags & TokenFlags.BinarySpecifier
-                    ? parseInt(tokenValue.slice(2), 2) // skip "0b"
-                    : tokenFlags & TokenFlags.OctalSpecifier
-                        ? parseInt(tokenValue.slice(2), 8) // skip "0o"
-                        : +tokenValue;
-                tokenValue = "" + numericValue;
-                return SyntaxKind.NumericLiteral;
-            }
+        function checkNumber(): SyntaxKind {
+            // Number() may not support 0b or 0o, so use parseInt() instead
+            const numericValue = tokenFlags & TokenFlags.BinarySpecifier
+                ? parseInt(tokenValue.slice(2), 2) // skip "0b"
+                : tokenFlags & TokenFlags.OctalSpecifier
+                    ? parseInt(tokenValue.slice(2), 8) // skip "0o"
+                    : +tokenValue;
+            tokenValue = "" + numericValue;
+            return SyntaxKind.NumericLiteral;
         }
 
         function scan(): SyntaxKind {
@@ -1857,7 +1845,7 @@ namespace ts {
                             }
                             tokenValue = "0x" + tokenValue;
                             tokenFlags |= TokenFlags.HexSpecifier;
-                            return token = checkBigIntSuffix();
+                            return token = checkNumber();
                         }
                         else if (pos + 2 < end && (text.charCodeAt(pos + 1) === CharacterCodes.B || text.charCodeAt(pos + 1) === CharacterCodes.b)) {
                             pos += 2;
@@ -1868,7 +1856,7 @@ namespace ts {
                             }
                             tokenValue = "0b" + tokenValue;
                             tokenFlags |= TokenFlags.BinarySpecifier;
-                            return token = checkBigIntSuffix();
+                            return token = checkNumber();
                         }
                         else if (pos + 2 < end && (text.charCodeAt(pos + 1) === CharacterCodes.O || text.charCodeAt(pos + 1) === CharacterCodes.o)) {
                             pos += 2;
@@ -1879,7 +1867,7 @@ namespace ts {
                             }
                             tokenValue = "0o" + tokenValue;
                             tokenFlags |= TokenFlags.OctalSpecifier;
-                            return token = checkBigIntSuffix();
+                            return token = checkNumber();
                         }
                         // Try to parse as an octal
                         if (pos + 1 < end && isOctalDigit(text.charCodeAt(pos + 1))) {

@@ -14,9 +14,6 @@ namespace ts {
     /** @deprecated Use `factory.createNumericLiteral` or the factory supplied by your transformation context instead. */
     export const createNumericLiteral = Debug.deprecate(factory.createNumericLiteral, factoryDeprecation);
 
-    /** @deprecated Use `factory.createBigIntLiteral` or the factory supplied by your transformation context instead. */
-    export const createBigIntLiteral = Debug.deprecate(factory.createBigIntLiteral, factoryDeprecation);
-
     /** @deprecated Use `factory.createStringLiteral` or the factory supplied by your transformation context instead. */
     export const createStringLiteral = Debug.deprecate(factory.createStringLiteral, factoryDeprecation);
 
@@ -960,14 +957,10 @@ namespace ts {
         return factory.updateTypePredicateNode(node, /*assertsModifier*/ undefined, parameterName, type);
     }, factoryDeprecation);
 
-    /** @deprecated Use `factory.createStringLiteral`, `factory.createStringLiteralFromNode`, `factory.createNumericLiteral`, `factory.createBigIntLiteral`, `factory.createTrue`, `factory.createFalse`, or the factory supplied by your transformation context instead. */
-    export const createLiteral = Debug.deprecate(function createLiteral(value: string | number | PseudoBigInt | boolean | StringLiteral | NoSubstitutionTemplateLiteral | NumericLiteral | Identifier): PrimaryExpression {
+    /** @deprecated Use `factory.createStringLiteral`, `factory.createStringLiteralFromNode`, `factory.createNumericLiteral`, `factory.createTrue`, `factory.createFalse`, or the factory supplied by your transformation context instead. */
+    export const createLiteral = Debug.deprecate(function createLiteral(value: string | number | boolean | StringLiteral | NoSubstitutionTemplateLiteral | NumericLiteral | Identifier): PrimaryExpression {
         if (typeof value === "number") {
             return factory.createNumericLiteral(value);
-        }
-        // eslint-disable-next-line local/no-in-operator
-        if (typeof value === "object" && "base10Value" in value) { // PseudoBigInt
-            return factory.createBigIntLiteral(value);
         }
         if (typeof value === "boolean") {
             return value ? factory.createTrue() : factory.createFalse();
@@ -978,10 +971,10 @@ namespace ts {
         return factory.createStringLiteralFromNode(value);
     } as {
         (value: string | StringLiteral | NoSubstitutionTemplateLiteral | NumericLiteral | Identifier): StringLiteral;
-        (value: number | PseudoBigInt): NumericLiteral;
+        (value: number): NumericLiteral;
         (value: boolean): BooleanLiteral;
-        (value: string | number | PseudoBigInt | boolean): PrimaryExpression;
-    }, { since: "4.0", warnAfter: "4.1", message: "Use `factory.createStringLiteral`, `factory.createStringLiteralFromNode`, `factory.createNumericLiteral`, `factory.createBigIntLiteral`, `factory.createTrue`, `factory.createFalse`, or the factory supplied by your transformation context instead." });
+        (value: string | number | boolean): PrimaryExpression;
+    }, { since: "4.0", warnAfter: "4.1", message: "Use `factory.createStringLiteral`, `factory.createStringLiteralFromNode`, `factory.createNumericLiteral`, `factory.createTrue`, `factory.createFalse`, or the factory supplied by your transformation context instead." });
 
     /** @deprecated Use `factory.createMethodSignature` or the factory supplied by your transformation context instead. */
     export const createMethodSignature = Debug.deprecate(function createMethodSignature(

@@ -1596,7 +1596,6 @@ namespace ts {
             case SyntaxKind.PrivateIdentifier: // technically this is only an Expression if it's in a `#field in expr` BinaryExpression
             case SyntaxKind.RegularExpressionLiteral:
             case SyntaxKind.NumericLiteral:
-            case SyntaxKind.BigIntLiteral:
             case SyntaxKind.StringLiteral:
             case SyntaxKind.NoSubstitutionTemplateLiteral:
             case SyntaxKind.TemplateExpression:

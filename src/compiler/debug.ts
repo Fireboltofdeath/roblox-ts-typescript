@@ -571,7 +571,6 @@ namespace ts {
                         const typeHeader =
                             this.flags & TypeFlags.Nullable ? "NullableType" :
                             this.flags & TypeFlags.StringOrNumberLiteral ? `LiteralType ${JSON.stringify((this as LiteralType).value)}` :
-                            this.flags & TypeFlags.BigIntLiteral ? `LiteralType ${(this as BigIntLiteralType).value.negative ? "-" : ""}${(this as BigIntLiteralType).value.base10Value}n` :
                             this.flags & TypeFlags.UniqueESSymbol ? "UniqueESSymbolType" :
                             this.flags & TypeFlags.Enum ? "EnumType" :
                             this.flags & TypeFlags.Intrinsic ? `IntrinsicType ${(this as IntrinsicType).intrinsicName}` :
@@ -636,7 +635,6 @@ namespace ts {
                                     isPrivateIdentifier(this) ? `PrivateIdentifier '${idText(this)}'` :
                                     isStringLiteral(this) ? `StringLiteral ${JSON.stringify(this.text.length < 10 ? this.text : this.text.slice(10) + "...")}` :
                                     isNumericLiteral(this) ? `NumericLiteral ${this.text}` :
-                                    isBigIntLiteral(this) ? `BigIntLiteral ${this.text}n` :
                                     isTypeParameterDeclaration(this) ? "TypeParameterDeclaration" :
                                     isParameter(this) ? "ParameterDeclaration" :
                                     isConstructorDeclaration(this) ? "ConstructorDeclaration" :

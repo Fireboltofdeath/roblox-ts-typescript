@@ -4,54 +4,54 @@ interface Atomics {
      * Until this atomic operation completes, any other read or write operation against the array
      * will block.
      */
-    add(typedArray: BigInt64Array | BigUint64Array, index: number, value: bigint): bigint;
+    add(typedArray: BigInt64Array | BigUint64Array, index: number, value: BigInt): BigInt;
 
     /**
      * Stores the bitwise AND of a value with the value at the given position in the array,
      * returning the original value. Until this atomic operation completes, any other read or
      * write operation against the array will block.
      */
-    and(typedArray: BigInt64Array | BigUint64Array, index: number, value: bigint): bigint;
+    and(typedArray: BigInt64Array | BigUint64Array, index: number, value: BigInt): BigInt;
 
     /**
      * Replaces the value at the given position in the array if the original value equals the given
      * expected value, returning the original value. Until this atomic operation completes, any
      * other read or write operation against the array will block.
      */
-    compareExchange(typedArray: BigInt64Array | BigUint64Array, index: number, expectedValue: bigint, replacementValue: bigint): bigint;
+    compareExchange(typedArray: BigInt64Array | BigUint64Array, index: number, expectedValue: BigInt, replacementValue: BigInt): BigInt;
 
     /**
      * Replaces the value at the given position in the array, returning the original value. Until
      * this atomic operation completes, any other read or write operation against the array will
      * block.
      */
-    exchange(typedArray: BigInt64Array | BigUint64Array, index: number, value: bigint): bigint;
+    exchange(typedArray: BigInt64Array | BigUint64Array, index: number, value: BigInt): BigInt;
 
     /**
      * Returns the value at the given position in the array. Until this atomic operation completes,
      * any other read or write operation against the array will block.
      */
-    load(typedArray: BigInt64Array | BigUint64Array, index: number): bigint;
+    load(typedArray: BigInt64Array | BigUint64Array, index: number): BigInt;
 
     /**
      * Stores the bitwise OR of a value with the value at the given position in the array,
      * returning the original value. Until this atomic operation completes, any other read or write
      * operation against the array will block.
      */
-    or(typedArray: BigInt64Array | BigUint64Array, index: number, value: bigint): bigint;
+    or(typedArray: BigInt64Array | BigUint64Array, index: number, value: BigInt): BigInt;
 
     /**
      * Stores a value at the given position in the array, returning the new value. Until this
      * atomic operation completes, any other read or write operation against the array will block.
      */
-    store(typedArray: BigInt64Array | BigUint64Array, index: number, value: bigint): bigint;
+    store(typedArray: BigInt64Array | BigUint64Array, index: number, value: BigInt): BigInt;
 
     /**
      * Subtracts a value from the value at the given position in the array, returning the original
      * value. Until this atomic operation completes, any other read or write operation against the
      * array will block.
      */
-    sub(typedArray: BigInt64Array | BigUint64Array, index: number, value: bigint): bigint;
+    sub(typedArray: BigInt64Array | BigUint64Array, index: number, value: BigInt): BigInt;
 
     /**
      * If the value at the given position in the array is equal to the provided value, the current
@@ -59,7 +59,7 @@ interface Atomics {
      * `"timed-out"`) or until the agent is awoken (returning `"ok"`); otherwise, returns
      * `"not-equal"`.
      */
-    wait(typedArray: BigInt64Array, index: number, value: bigint, timeout?: number): "ok" | "not-equal" | "timed-out";
+    wait(typedArray: BigInt64Array, index: number, value: BigInt, timeout?: number): "ok" | "not-equal" | "timed-out";
 
     /**
      * Wakes up sleeping agents that are waiting on the given index of the array, returning the
@@ -75,5 +75,5 @@ interface Atomics {
      * returning the original value. Until this atomic operation completes, any other read or write
      * operation against the array will block.
      */
-    xor(typedArray: BigInt64Array | BigUint64Array, index: number, value: bigint): bigint;
+    xor(typedArray: BigInt64Array | BigUint64Array, index: number, value: BigInt): BigInt;
 }

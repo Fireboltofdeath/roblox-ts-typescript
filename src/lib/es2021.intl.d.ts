@@ -17,8 +17,8 @@ declare namespace Intl {
     }
 
     interface DateTimeFormat {
-        formatRange(startDate: Date | number | bigint, endDate: Date | number | bigint): string;
-        formatRangeToParts(startDate: Date | number | bigint, endDate: Date | number | bigint): DateTimeRangeFormatPart[];
+        formatRange(startDate: Date | number | BigInt, endDate: Date | number | BigInt): string;
+        formatRangeToParts(startDate: Date | number | BigInt, endDate: Date | number | BigInt): DateTimeRangeFormatPart[];
     }
 
     interface ResolvedDateTimeFormatOptions {

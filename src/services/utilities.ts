@@ -1629,7 +1629,6 @@ namespace ts {
                 case SyntaxKind.Identifier:
                 case SyntaxKind.StringLiteral:
                 case SyntaxKind.NumericLiteral:
-                case SyntaxKind.BigIntLiteral:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
                 // falls through
@@ -1836,7 +1835,6 @@ namespace ts {
     export const typeKeywords: readonly SyntaxKind[] = [
         SyntaxKind.AnyKeyword,
         SyntaxKind.AssertsKeyword,
-        SyntaxKind.BigIntKeyword,
         SyntaxKind.BooleanKeyword,
         SyntaxKind.VectorKeyword,
         SyntaxKind.ThreadKeyword,

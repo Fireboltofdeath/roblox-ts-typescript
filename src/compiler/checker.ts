@@ -363,6 +363,7 @@ namespace ts {
         const noImplicitAny = getStrictOptionValue(compilerOptions, "noImplicitAny");
         const noImplicitThis = getStrictOptionValue(compilerOptions, "noImplicitThis");
         const useUnknownInCatchVariables = getStrictOptionValue(compilerOptions, "useUnknownInCatchVariables");
+        const forInIsUnknown = compilerOptions.forInIsUnknown;
         const keyofStringsOnly = !!compilerOptions.keyofStringsOnly;
         const freshObjectLiteralFlag = compilerOptions.suppressExcessPropertyErrors ? 0 : ObjectFlags.FreshLiteral;
         const exactOptionalPropertyTypes = compilerOptions.exactOptionalPropertyTypes;
@@ -772,7 +773,6 @@ namespace ts {
         const intersectionTypes = new Map<string, Type>();
         const stringLiteralTypes = new Map<string, StringLiteralType>();
         const numberLiteralTypes = new Map<number, NumberLiteralType>();
-        const bigIntLiteralTypes = new Map<string, BigIntLiteralType>();
         const enumLiteralTypes = new Map<string, LiteralType>();
         const indexedAccessTypes = new Map<string, IndexedAccessType>();
         const templateLiteralTypes = new Map<string, TemplateLiteralType>();
@@ -806,7 +806,6 @@ namespace ts {
         const nullWideningType = strictNullChecks ? nullType : createIntrinsicType(TypeFlags.Null, "null", ObjectFlags.ContainsWideningType);
         const stringType = createIntrinsicType(TypeFlags.String, "string");
         const numberType = createIntrinsicType(TypeFlags.Number, "number");
-        const bigintType = createIntrinsicType(TypeFlags.BigInt, "bigint");
         const falseType = createIntrinsicType(TypeFlags.BooleanLiteral, "false") as FreshableIntrinsicType;
         const regularFalseType = createIntrinsicType(TypeFlags.BooleanLiteral, "false") as FreshableIntrinsicType;
         const trueType = createIntrinsicType(TypeFlags.BooleanLiteral, "true") as FreshableIntrinsicType;
@@ -833,8 +832,7 @@ namespace ts {
         const stringOrNumberType = getUnionType([stringType, numberType]);
         const stringNumberSymbolType = getUnionType([stringType, numberType, esSymbolType]);
         const keyofConstraintType = keyofStringsOnly ? stringType : stringNumberSymbolType;
-        const numberOrBigIntType = getUnionType([numberType, bigintType]);
-        const templateConstraintType = getUnionType([stringType, numberType, booleanType, bigintType, nullType, undefinedType]) as UnionType;
+        const templateConstraintType = getUnionType([stringType, numberType, booleanType, nullType, undefinedType]) as UnionType;
         const numericStringType = getTemplateLiteralType(["", ""], [numberType]);  // The `${number}` type
 
         const restrictiveMapper: TypeMapper = makeFunctionTypeMapper(t => t.flags & TypeFlags.TypeParameter ? getRestrictiveTypeParameter(t as TypeParameter) : t, () => "(restrictive mapper)");
@@ -1006,7 +1004,6 @@ namespace ts {
         let deferredGlobalExtractSymbol: Symbol | undefined;
         let deferredGlobalOmitSymbol: Symbol | undefined;
         let deferredGlobalAwaitedSymbol: Symbol | undefined;
-        let deferredGlobalBigIntType: ObjectType | undefined;
         let deferredGlobalNaNSymbol: Symbol | undefined;
         let deferredGlobalRecordSymbol: Symbol | undefined;
 
@@ -1023,7 +1020,6 @@ namespace ts {
 
         const emptyStringType = getStringLiteralType("");
         const zeroType = getNumberLiteralType(0);
-        const zeroBigIntType = getBigIntLiteralType({ negative: false, base10Value: "0" });
 
         const resolutionTargets: TypeSystemEntity[] = [];
         const resolutionResults: boolean[] = [];
@@ -5146,10 +5142,6 @@ namespace ts {
                     context.approximateLength += 6;
                     return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword);
                 }
-                if (type.flags & TypeFlags.BigInt) {
-                    context.approximateLength += 6;
-                    return factory.createKeywordTypeNode(SyntaxKind.BigIntKeyword);
-                }
                 if (type.flags & TypeFlags.Boolean && !type.aliasSymbol) {
                     context.approximateLength += 7;
                     return factory.createKeywordTypeNode(SyntaxKind.BooleanKeyword);
@@ -5201,10 +5193,6 @@ namespace ts {
                     const value = (type as NumberLiteralType).value;
                     context.approximateLength += ("" + value).length;
                     return factory.createLiteralTypeNode(value < 0 ? factory.createPrefixUnaryExpression(SyntaxKind.MinusToken, factory.createNumericLiteral(-value)) : factory.createNumericLiteral(value));
-                }
-                if (type.flags & TypeFlags.BigIntLiteral) {
-                    context.approximateLength += (pseudoBigIntToString((type as BigIntLiteralType).value).length) + 1;
-                    return factory.createLiteralTypeNode((factory.createBigIntLiteral((type as BigIntLiteralType).value)));
                 }
                 if (type.flags & TypeFlags.BooleanLiteral) {
                     context.approximateLength += (type as IntrinsicType).intrinsicName.length;
@@ -9145,7 +9133,8 @@ namespace ts {
             // right hand expression is of a type parameter type.
             if (isVariableDeclaration(declaration) && declaration.parent.parent.kind === SyntaxKind.ForInStatement) {
                 const indexType = getIndexType(getNonNullableTypeIfNeeded(checkExpression(declaration.parent.parent.expression, /*checkMode*/ checkMode)));
-                return indexType.flags & (TypeFlags.TypeParameter | TypeFlags.Index) ? getExtractStringType(indexType) : unknownType;
+                return indexType.flags & (TypeFlags.TypeParameter | TypeFlags.Index) ? getExtractStringType(indexType) :
+                    forInIsUnknown ? unknownType : stringType;
             }
 
             if (isVariableDeclaration(declaration) && declaration.parent.parent.kind === SyntaxKind.ForOfStatement) {
@@ -10872,7 +10861,6 @@ namespace ts {
                 case SyntaxKind.UnknownKeyword:
                 case SyntaxKind.StringKeyword:
                 case SyntaxKind.NumberKeyword:
-                case SyntaxKind.BigIntKeyword:
                 case SyntaxKind.BooleanKeyword:
                 case SyntaxKind.VectorKeyword:
                 case SyntaxKind.ThreadKeyword:
@@ -11885,10 +11873,10 @@ namespace ts {
                 return mapType(type as UnionType, getLowerBoundOfKeyType);
             }
             if (type.flags & TypeFlags.Intersection) {
-                // Similarly to getTypeFromIntersectionTypeNode, we preserve the special string & {}, number & {},
-                // and bigint & {} intersections that are used to prevent subtype reduction in union types.
+                // Similarly to getTypeFromIntersectionTypeNode, we preserve the special string & {}, and number & {}
+                // intersections that are used to prevent subtype reduction in union types.
                 const types = (type as IntersectionType).types;
-                if (types.length === 2 && !!(types[0].flags & (TypeFlags.String | TypeFlags.Number | TypeFlags.BigInt)) && types[1] === emptyTypeLiteralType) {
+                if (types.length === 2 && !!(types[0].flags & (TypeFlags.String | TypeFlags.Number)) && types[1] === emptyTypeLiteralType) {
                     return type;
                 }
                 return getIntersectionType(sameMap((type as UnionType).types, getLowerBoundOfKeyType));
@@ -12580,7 +12568,6 @@ namespace ts {
                 t.flags & TypeFlags.Intersection ? getApparentTypeOfIntersectionType(t as IntersectionType) :
                 t.flags & TypeFlags.StringLike ? globalStringType :
                 t.flags & TypeFlags.NumberLike ? globalNumberType :
-                t.flags & TypeFlags.BigIntLike ? getGlobalBigIntType() :
                 t.flags & TypeFlags.BooleanLike ? globalBooleanType :
                 t.flags & TypeFlags.Vector ? globalVectorType :
                 t.flags & TypeFlags.Thread ? globalThreadType :
@@ -14440,10 +14427,6 @@ namespace ts {
             return deferredGlobalAwaitedSymbol === unknownSymbol ? undefined : deferredGlobalAwaitedSymbol;
         }
 
-        function getGlobalBigIntType() {
-            return (deferredGlobalBigIntType ||= getGlobalType("BigInt" as __String, /*arity*/ 0, /*reportErrors*/ false)) || emptyObjectType;
-        }
-
         function getGlobalNaNSymbol(): Symbol | undefined {
             return (deferredGlobalNaNSymbol ||= getGlobalValueSymbol("NaN" as __String, /*reportErrors*/ false));
         }
@@ -14924,7 +14907,6 @@ namespace ts {
                 const remove =
                     flags & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping) && includes & TypeFlags.String ||
                     flags & TypeFlags.NumberLiteral && includes & TypeFlags.Number ||
-                    flags & TypeFlags.BigIntLiteral && includes & TypeFlags.BigInt ||
                     flags & TypeFlags.UniqueESSymbol && includes & TypeFlags.ESSymbol ||
                     reduceVoidUndefined && flags & TypeFlags.Undefined && includes & TypeFlags.Void ||
                     isFreshLiteralType(t) && containsType(types, (t as LiteralType).regularType);
@@ -15173,7 +15155,6 @@ namespace ts {
                 const remove =
                     t.flags & TypeFlags.String && includes & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping) ||
                     t.flags & TypeFlags.Number && includes & TypeFlags.NumberLiteral ||
-                    t.flags & TypeFlags.BigInt && includes & TypeFlags.BigIntLiteral ||
                     t.flags & TypeFlags.ESSymbol && includes & TypeFlags.UniqueESSymbol ||
                     t.flags & TypeFlags.Void && includes & TypeFlags.Undefined ||
                     isEmptyAnonymousObjectType(t) && includes & TypeFlags.DefinitelyNonNullable;
@@ -15191,7 +15172,6 @@ namespace ts {
                 if (!containsType(u.types, type)) {
                     const primitive = type.flags & TypeFlags.StringLiteral ? stringType :
                         type.flags & TypeFlags.NumberLiteral ? numberType :
-                        type.flags & TypeFlags.BigIntLiteral ? bigintType :
                         type.flags & TypeFlags.UniqueESSymbol ? esSymbolType :
                         undefined;
                     if (!primitive || !containsType(u.types, primitive)) {
@@ -15320,7 +15300,9 @@ namespace ts {
                 includes & TypeFlags.NonPrimitive && includes & (TypeFlags.DisjointDomains & ~TypeFlags.NonPrimitive) ||
                 includes & TypeFlags.StringLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.StringLike) ||
                 includes & TypeFlags.NumberLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.NumberLike) ||
-                includes & TypeFlags.BigIntLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.BigIntLike) ||
+                includes & TypeFlags.Vector && includes & (TypeFlags.DisjointDomains & ~TypeFlags.Vector) ||
+                includes & TypeFlags.Thread && includes & (TypeFlags.DisjointDomains & ~TypeFlags.Thread) ||
+                includes & TypeFlags.Userdata && includes & (TypeFlags.DisjointDomains & ~TypeFlags.Userdata) ||
                 includes & TypeFlags.ESSymbolLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.ESSymbolLike) ||
                 includes & TypeFlags.VoidLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.VoidLike)) {
                 return neverType;
@@ -15336,7 +15318,6 @@ namespace ts {
             }
             if (includes & TypeFlags.String && includes & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping) ||
                 includes & TypeFlags.Number && includes & TypeFlags.NumberLiteral ||
-                includes & TypeFlags.BigInt && includes & TypeFlags.BigIntLiteral ||
                 includes & TypeFlags.ESSymbol && includes & TypeFlags.UniqueESSymbol ||
                 includes & TypeFlags.Void && includes & TypeFlags.Undefined ||
                 includes & TypeFlags.IncludesEmptyObject && includes & TypeFlags.DefinitelyNonNullable) {
@@ -15442,7 +15423,7 @@ namespace ts {
             if (!links.resolvedType) {
                 const aliasSymbol = getAliasSymbolForTypeNode(node);
                 const types = map(node.types, getTypeFromTypeNode);
-                const noSupertypeReduction = types.length === 2 && !!(types[0].flags & (TypeFlags.String | TypeFlags.Number | TypeFlags.BigInt)) && types[1] === emptyTypeLiteralType;
+                const noSupertypeReduction = types.length === 2 && !!(types[0].flags & (TypeFlags.String | TypeFlags.Number)) && types[1] === emptyTypeLiteralType;
                 links.resolvedType = getIntersectionType(types, aliasSymbol, getTypeArgumentsForAliasSymbol(aliasSymbol), noSupertypeReduction);
             }
             return links.resolvedType;
@@ -15725,7 +15706,6 @@ namespace ts {
         function getTemplateStringForType(type: Type) {
             return type.flags & TypeFlags.StringLiteral ? (type as StringLiteralType).value :
                 type.flags & TypeFlags.NumberLiteral ? "" + (type as NumberLiteralType).value :
-                type.flags & TypeFlags.BigIntLiteral ? pseudoBigIntToString((type as BigIntLiteralType).value) :
                 type.flags & (TypeFlags.BooleanLiteral | TypeFlags.Nullable) ? (type as IntrinsicType).intrinsicName :
                 undefined;
         }
@@ -15744,7 +15724,7 @@ namespace ts {
                 // Mapping<Mapping<T>> === Mapping<T>
                 type.flags & TypeFlags.StringMapping && symbol === type.symbol ? type :
                 type.flags & (TypeFlags.Any | TypeFlags.String | TypeFlags.StringMapping) || isGenericIndexType(type) ? getStringMappingTypeForGenericType(symbol, type) :
-                // This handles Mapping<`${number}`> and Mapping<`${bigint}`>
+                // This handles Mapping<`${number}`>
                 isPatternLiteralPlaceholderType(type) ? getStringMappingTypeForGenericType(symbol, getTemplateLiteralType(["", ""], [type])) :
                 type;
         }
@@ -16043,7 +16023,7 @@ namespace ts {
         }
 
         function isPatternLiteralPlaceholderType(type: Type): boolean {
-            return !!(type.flags & (TypeFlags.Any | TypeFlags.String | TypeFlags.Number | TypeFlags.BigInt)) || isPatternLiteralType(type);
+            return !!(type.flags & (TypeFlags.Any | TypeFlags.String | TypeFlags.Number)) || isPatternLiteralType(type);
         }
 
         function isPatternLiteralType(type: Type) {
@@ -16682,7 +16662,7 @@ namespace ts {
         }
 
         function isEmptyObjectTypeOrSpreadsIntoEmptyObject(type: Type) {
-            return isEmptyObjectType(type) || !!(type.flags & (TypeFlags.Null | TypeFlags.Undefined | TypeFlags.BooleanLike | TypeFlags.NumberLike | TypeFlags.BigIntLike | TypeFlags.StringLike | TypeFlags.EnumLike | TypeFlags.NonPrimitive | TypeFlags.Index));
+            return isEmptyObjectType(type) || !!(type.flags & (TypeFlags.Null | TypeFlags.Undefined | TypeFlags.BooleanLike | TypeFlags.NumberLike | TypeFlags.StringLike | TypeFlags.EnumLike | TypeFlags.NonPrimitive | TypeFlags.Index));
         }
 
         function tryMergeUnionOfObjectTypeAndEmptyObject(type: Type, readonly: boolean): Type {
@@ -16756,7 +16736,7 @@ namespace ts {
                     ? mapType(right, t => getSpreadType(left, t, symbol, objectFlags, readonly))
                     : errorType;
             }
-            if (right.flags & (TypeFlags.BooleanLike | TypeFlags.NumberLike | TypeFlags.BigIntLike | TypeFlags.StringLike | TypeFlags.EnumLike | TypeFlags.NonPrimitive | TypeFlags.Index)) {
+            if (right.flags & (TypeFlags.BooleanLike | TypeFlags.NumberLike | TypeFlags.StringLike | TypeFlags.EnumLike | TypeFlags.NonPrimitive | TypeFlags.Index)) {
                 return left;
             }
 
@@ -16844,7 +16824,7 @@ namespace ts {
             return info.isReadonly !== readonly ? createIndexInfo(info.keyType, info.type, readonly, info.declaration) : info;
         }
 
-        function createLiteralType(flags: TypeFlags, value: string | number | PseudoBigInt, symbol?: Symbol, regularType?: LiteralType) {
+        function createLiteralType(flags: TypeFlags, value: string | number, symbol?: Symbol, regularType?: LiteralType) {
             const type = createType(flags) as LiteralType;
             type.symbol = symbol!;
             type.value = value;
@@ -16884,13 +16864,6 @@ namespace ts {
             let type;
             return numberLiteralTypes.get(value) ||
                 (numberLiteralTypes.set(value, type = createLiteralType(TypeFlags.NumberLiteral, value) as NumberLiteralType), type);
-        }
-
-        function getBigIntLiteralType(value: PseudoBigInt): BigIntLiteralType {
-            let type;
-            const key = pseudoBigIntToString(value);
-            return bigIntLiteralTypes.get(key) ||
-                (bigIntLiteralTypes.set(key, type = createLiteralType(TypeFlags.BigIntLiteral, value) as BigIntLiteralType), type);
         }
 
         function getEnumLiteralType(value: string | number, enumId: number, symbol: Symbol): LiteralType {
@@ -17012,8 +16985,6 @@ namespace ts {
                     return stringType;
                 case SyntaxKind.NumberKeyword:
                     return numberType;
-                case SyntaxKind.BigIntKeyword:
-                    return bigintType;
                 case SyntaxKind.BooleanKeyword:
                     return booleanType;
                 case SyntaxKind.VectorKeyword:
@@ -18623,7 +18594,6 @@ namespace ts {
             if (s & TypeFlags.NumberLiteral && s & TypeFlags.EnumLiteral &&
                 t & TypeFlags.NumberLiteral && !(t & TypeFlags.EnumLiteral) &&
                 (source as NumberLiteralType).value === (target as NumberLiteralType).value) return true;
-            if (s & TypeFlags.BigIntLike && t & TypeFlags.BigInt) return true;
             if (s & TypeFlags.BooleanLike && t & TypeFlags.Boolean) return true;
             if (s & TypeFlags.ESSymbolLike && t & TypeFlags.ESSymbol) return true;
             if (s & TypeFlags.Enum && t & TypeFlags.Enum && isEnumTypeRelatedTo(source.symbol, target.symbol, errorReporter)) return true;
@@ -21696,7 +21666,6 @@ namespace ts {
             return type.flags & TypeFlags.EnumLiteral ? getBaseTypeOfEnumLiteralType(type as LiteralType) :
                 type.flags & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping) ? stringType :
                 type.flags & TypeFlags.NumberLiteral ? numberType :
-                type.flags & TypeFlags.BigIntLiteral ? bigintType :
                 type.flags & TypeFlags.BooleanLiteral ? booleanType :
                 type.flags & TypeFlags.Union ? getBaseTypeOfLiteralTypeUnion(type as UnionType) :
                 type;
@@ -21711,7 +21680,6 @@ namespace ts {
             return type.flags & TypeFlags.EnumLiteral && isFreshLiteralType(type) ? getBaseTypeOfEnumLiteralType(type as LiteralType) :
                 type.flags & TypeFlags.StringLiteral && isFreshLiteralType(type) ? stringType :
                 type.flags & TypeFlags.NumberLiteral && isFreshLiteralType(type) ? numberType :
-                type.flags & TypeFlags.BigIntLiteral && isFreshLiteralType(type) ? bigintType :
                 type.flags & TypeFlags.BooleanLiteral && isFreshLiteralType(type) ? booleanType :
                 type.flags & TypeFlags.Union ? mapType(type as UnionType, getWidenedLiteralType) :
                 type;
@@ -21793,10 +21761,6 @@ namespace ts {
                 every(t1.target.elementFlags, (f, i) => (f & ElementFlags.Variable) === (t2.target.elementFlags[i] & ElementFlags.Variable));
         }
 
-        function isZeroBigInt({value}: BigIntLiteralType) {
-            return value.base10Value === "0";
-        }
-
         function removeDefinitelyFalsyTypes(type: Type): Type {
             return filterType(type, t => !!(getTypeFacts(t) & TypeFacts.Truthy));
         }
@@ -21808,13 +21772,11 @@ namespace ts {
         function getDefinitelyFalsyPartOfType(type: Type): Type {
             return type.flags & TypeFlags.String ? emptyStringType :
                 type.flags & TypeFlags.Number ? zeroType :
-                type.flags & TypeFlags.BigInt ? zeroBigIntType :
                 type === regularFalseType ||
                 type === falseType ||
                 type.flags & (TypeFlags.Void | TypeFlags.Undefined | TypeFlags.Null | TypeFlags.AnyOrUnknown) ||
                 type.flags & TypeFlags.StringLiteral && (type as StringLiteralType).value === "" ||
-                type.flags & TypeFlags.NumberLiteral && (type as NumberLiteralType).value === 0 ||
-                type.flags & TypeFlags.BigIntLiteral && isZeroBigInt(type as BigIntLiteralType) ? type :
+                type.flags & TypeFlags.NumberLiteral && (type as NumberLiteralType).value === 0 ? type :
                 neverType;
         }
 
@@ -22575,41 +22537,6 @@ namespace ts {
             return isFinite(n) && (!roundTripOnly || "" + n === s);
         }
 
-        /**
-         * @param text a valid bigint string excluding a trailing `n`, but including a possible prefix `-`. Use `isValidBigIntString(text, roundTripOnly)` before calling this function.
-         */
-        function parseBigIntLiteralType(text: string) {
-            const negative = text.startsWith("-");
-            const base10Value = parsePseudoBigInt(`${negative ? text.slice(1) : text}n`);
-            return getBigIntLiteralType({ negative, base10Value });
-        }
-
-        /**
-         * Tests whether the provided string can be parsed as a bigint.
-         * @param s The string to test.
-         * @param roundTripOnly Indicates the resulting bigint matches the input when converted back to a string.
-         */
-        function isValidBigIntString(s: string, roundTripOnly: boolean): boolean {
-            if (s === "") return false;
-            const scanner = createScanner(ScriptTarget.ESNext, /*skipTrivia*/ false);
-            let success = true;
-            scanner.setOnError(() => success = false);
-            scanner.setText(s + "n");
-            let result = scanner.scan();
-            const negative = result === SyntaxKind.MinusToken;
-            if (negative) {
-                result = scanner.scan();
-            }
-            const flags = scanner.getTokenFlags();
-            // validate that
-            // * scanning proceeded without error
-            // * a bigint can be scanned, and that when it is scanned, it is
-            // * the full length of the input string (so the scanner is one character beyond the augmented input length)
-            // * it does not contain a numeric seperator (the `BigInt` constructor does not accept a numeric seperator in its input)
-            return success && result === SyntaxKind.BigIntLiteral && scanner.getTextPos() === (s.length + 1) && !(flags & TokenFlags.ContainsSeparator)
-                && (!roundTripOnly || s === pseudoBigIntToString({ negative, base10Value: parsePseudoBigInt(scanner.getTokenValue()) }));
-        }
-
         function isMemberOfStringMapping(source: Type, target: Type): boolean {
             if (target.flags & (TypeFlags.String | TypeFlags.Any)) {
                 return true;
@@ -22643,7 +22570,6 @@ namespace ts {
             if (source.flags & TypeFlags.StringLiteral) {
                 const value = (source as StringLiteralType).value;
                 return !!(target.flags & TypeFlags.Number && isValidNumberString(value, /*roundTripOnly*/ false) ||
-                    target.flags & TypeFlags.BigInt && isValidBigIntString(value, /*roundTripOnly*/ false) ||
                     target.flags & (TypeFlags.BooleanLiteral | TypeFlags.Nullable) && value === (target as IntrinsicType).intrinsicName ||
                     target.flags & TypeFlags.StringMapping && isMemberOfStringMapping(getStringLiteralType(value), target));
             }
@@ -23265,11 +23191,6 @@ namespace ts {
                                         allTypeFlags &= ~TypeFlags.NumberLike;
                                     }
 
-                                    // If the type contains `bigint` or a bigint literal and the string isn't a valid bigint, exclude bigints
-                                    if (allTypeFlags & TypeFlags.BigIntLike && !isValidBigIntString(str, /*roundTripOnly*/ true)) {
-                                        allTypeFlags &= ~TypeFlags.BigIntLike;
-                                    }
-
                                     // for each type in the constraint, find the highest priority matching type
                                     const matchingType = reduceLeft(constraintTypes, (left, right) =>
                                         !(right.flags & allTypeFlags) ? left :
@@ -23280,8 +23201,6 @@ namespace ts {
                                         left.flags & TypeFlags.Number ? left : right.flags & TypeFlags.Number ? getNumberLiteralType(+str) :
                                         left.flags & TypeFlags.Enum ? left : right.flags & TypeFlags.Enum ? getNumberLiteralType(+str) :
                                         left.flags & TypeFlags.NumberLiteral ? left : right.flags & TypeFlags.NumberLiteral && (right as NumberLiteralType).value === +str ? right :
-                                        left.flags & TypeFlags.BigInt ? left : right.flags & TypeFlags.BigInt ? parseBigIntLiteralType(str) :
-                                        left.flags & TypeFlags.BigIntLiteral ? left : right.flags & TypeFlags.BigIntLiteral && pseudoBigIntToString((right as BigIntLiteralType).value) === str ? right :
                                         left.flags & TypeFlags.Boolean ? left : right.flags & TypeFlags.Boolean ? str === "true" ? trueType : str === "false" ? falseType : booleanType :
                                         left.flags & TypeFlags.BooleanLiteral ? left : right.flags & TypeFlags.BooleanLiteral && (right as IntrinsicType).intrinsicName === str ? right :
                                         left.flags & TypeFlags.Undefined ? left : right.flags & TypeFlags.Undefined && (right as IntrinsicType).intrinsicName === str ? right :
@@ -23624,10 +23543,7 @@ namespace ts {
                 case "AsyncIterableIterator":
                 case "AsyncGenerator":
                 case "AsyncGeneratorFunction":
-                case "BigInt":
                 case "Reflect":
-                case "BigInt64Array":
-                case "BigUint64Array":
                     return Diagnostics.Cannot_find_name_0_Do_you_need_to_change_your_target_library_Try_changing_the_lib_compiler_option_to_1_or_later;
                 case "await":
                     if (isCallExpression(node.parent)) {
@@ -24185,7 +24101,7 @@ namespace ts {
             const { parent } = node;
             switch (parent.kind) {
                 case SyntaxKind.ForInStatement:
-                    return unknownType;
+                    return forInIsUnknown ? unknownType : stringType;
                 case SyntaxKind.ForOfStatement:
                     return checkRightHandSideOfForOf(parent as ForOfStatement) || errorType;
                 case SyntaxKind.BinaryExpression:
@@ -24228,7 +24144,7 @@ namespace ts {
                 return getTypeOfInitializer(node.initializer);
             }
             if (node.parent.parent.kind === SyntaxKind.ForInStatement) {
-                return unknownType;
+                return forInIsUnknown ? unknownType : stringType;
             }
             if (node.parent.parent.kind === SyntaxKind.ForOfStatement) {
                 return checkRightHandSideOfForOf(node.parent.parent) || errorType;
@@ -24424,19 +24340,18 @@ namespace ts {
             return filterType(type, t => (t.flags & kind) !== 0);
         }
 
-        // Return a new type in which occurrences of the string, number and bigint primitives and placeholder template
+        // Return a new type in which occurrences of the string and number primitives and placeholder template
         // literal types in typeWithPrimitives have been replaced with occurrences of compatible and more specific types
         // from typeWithLiterals. This is essentially a limited form of intersection between the two types. We avoid a
         // true intersection because it is more costly and, when applied to union types, generates a large number of
         // types we don't actually care about.
         function replacePrimitivesWithLiterals(typeWithPrimitives: Type, typeWithLiterals: Type) {
-            if (maybeTypeOfKind(typeWithPrimitives, TypeFlags.String | TypeFlags.TemplateLiteral | TypeFlags.Number | TypeFlags.BigInt) &&
-                maybeTypeOfKind(typeWithLiterals, TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping | TypeFlags.NumberLiteral | TypeFlags.BigIntLiteral)) {
+            if (maybeTypeOfKind(typeWithPrimitives, TypeFlags.String | TypeFlags.TemplateLiteral | TypeFlags.Number) &&
+                maybeTypeOfKind(typeWithLiterals, TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping | TypeFlags.NumberLiteral)) {
                 return mapType(typeWithPrimitives, t =>
                     t.flags & TypeFlags.String ? extractTypesOfKind(typeWithLiterals, TypeFlags.String | TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping) :
                     isPatternLiteralType(t) && !maybeTypeOfKind(typeWithLiterals, TypeFlags.String | TypeFlags.TemplateLiteral | TypeFlags.StringMapping) ? extractTypesOfKind(typeWithLiterals, TypeFlags.StringLiteral) :
-                    t.flags & TypeFlags.Number ? extractTypesOfKind(typeWithLiterals, TypeFlags.Number | TypeFlags.NumberLiteral) :
-                    t.flags & TypeFlags.BigInt ? extractTypesOfKind(typeWithLiterals, TypeFlags.BigInt | TypeFlags.BigIntLiteral) : t);
+                    t.flags & TypeFlags.Number ? extractTypesOfKind(typeWithLiterals, TypeFlags.Number | TypeFlags.NumberLiteral) : t);
             }
             return typeWithPrimitives;
         }
@@ -27586,7 +27501,6 @@ namespace ts {
             switch (node.kind) {
                 case SyntaxKind.StringLiteral:
                 case SyntaxKind.NumericLiteral:
-                case SyntaxKind.BigIntLiteral:
                 case SyntaxKind.NoSubstitutionTemplateLiteral:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -30031,7 +29945,7 @@ namespace ts {
                 let candidates: Symbol[];
                 if (symbols === globals) {
                     const primitives = mapDefined(
-                        ["string", "number", "boolean", "object", "bigint", "symbol"],
+                        ["string", "number", "boolean", "object", "symbol"],
                         s => symbols.has((s.charAt(0).toUpperCase() + s.slice(1)) as __String)
                             ? createSymbol(SymbolFlags.TypeAlias, s as __String) as Symbol
                             : undefined);
@@ -32619,7 +32533,6 @@ namespace ts {
                 case SyntaxKind.StringLiteral:
                 case SyntaxKind.NoSubstitutionTemplateLiteral:
                 case SyntaxKind.NumericLiteral:
-                case SyntaxKind.BigIntLiteral:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.ArrayLiteralExpression:
@@ -32631,7 +32544,7 @@ namespace ts {
                 case SyntaxKind.PrefixUnaryExpression:
                     const op = (node as PrefixUnaryExpression).operator;
                     const arg = (node as PrefixUnaryExpression).operand;
-                    return op === SyntaxKind.MinusToken && (arg.kind === SyntaxKind.NumericLiteral || arg.kind === SyntaxKind.BigIntLiteral) ||
+                    return op === SyntaxKind.MinusToken && arg.kind === SyntaxKind.NumericLiteral ||
                         op === SyntaxKind.PlusToken && arg.kind === SyntaxKind.NumericLiteral;
                 case SyntaxKind.PropertyAccessExpression:
                 case SyntaxKind.ElementAccessExpression:
@@ -33646,11 +33559,11 @@ namespace ts {
         }
 
         function checkArithmeticOperandType(operand: Node, type: Type, diagnostic: DiagnosticMessage, isAwaitValid = false): boolean {
-            if (!isTypeAssignableTo(type, numberOrBigIntType)) {
+            if (!isTypeAssignableTo(type, numberType)) {
                 const awaitedType = isAwaitValid && getAwaitedTypeOfPromise(type);
                 errorAndMaybeSuggestAwait(
                     operand,
-                    !!awaitedType && isTypeAssignableTo(awaitedType, numberOrBigIntType),
+                    !!awaitedType && isTypeAssignableTo(awaitedType, numberType),
                     diagnostic);
                 return false;
             }
@@ -33895,13 +33808,6 @@ namespace ts {
                             return getFreshTypeOfLiteralType(getNumberLiteralType(+(node.operand as NumericLiteral).text));
                     }
                     break;
-                case SyntaxKind.BigIntLiteral:
-                    if (node.operator === SyntaxKind.MinusToken) {
-                        return getFreshTypeOfLiteralType(getBigIntLiteralType({
-                            negative: true,
-                            base10Value: parsePseudoBigInt((node.operand as BigIntLiteral).text)
-                        }));
-                    }
             }
             switch (node.operator) {
                 case SyntaxKind.PlusToken:
@@ -33912,12 +33818,9 @@ namespace ts {
                         error(node.operand, Diagnostics.The_0_operator_cannot_be_applied_to_type_symbol, tokenToString(node.operator));
                     }
                     if (node.operator === SyntaxKind.PlusToken) {
-                        if (maybeTypeOfKindConsideringBaseConstraint(operandType, TypeFlags.BigIntLike)) {
-                            error(node.operand, Diagnostics.Operator_0_cannot_be_applied_to_type_1, tokenToString(node.operator), typeToString(getBaseTypeOfLiteralType(operandType)));
-                        }
                         return numberType;
                     }
-                    return getUnaryResultType(operandType);
+                    return numberType;
                 case SyntaxKind.ExclamationToken:
                     checkTruthinessExpression(node.operand);
                     const facts = getTypeFacts(operandType) & (TypeFacts.Truthy | TypeFacts.Falsy);
@@ -33935,7 +33838,7 @@ namespace ts {
                             Diagnostics.The_operand_of_an_increment_or_decrement_operator_must_be_a_variable_or_a_property_access,
                             Diagnostics.The_operand_of_an_increment_or_decrement_operator_may_not_be_an_optional_property_access);
                     }
-                    return getUnaryResultType(operandType);
+                    return numberType;
             }
             return errorType;
         }
@@ -33956,16 +33859,6 @@ namespace ts {
                     Diagnostics.The_operand_of_an_increment_or_decrement_operator_must_be_a_variable_or_a_property_access,
                     Diagnostics.The_operand_of_an_increment_or_decrement_operator_may_not_be_an_optional_property_access);
             }
-            return getUnaryResultType(operandType);
-        }
-
-        function getUnaryResultType(operandType: Type): Type {
-            if (maybeTypeOfKind(operandType, TypeFlags.BigIntLike)) {
-                return isTypeAssignableToKind(operandType, TypeFlags.AnyOrUnknown) || maybeTypeOfKind(operandType, TypeFlags.NumberLike)
-                    ? numberOrBigIntType
-                    : bigintType;
-            }
-            // If it's not a bigint type, implicit coercion will result in a number
             return numberType;
         }
 
@@ -34003,7 +33896,6 @@ namespace ts {
                 return false;
             }
             return !!(kind & TypeFlags.NumberLike) && isTypeAssignableTo(source, numberType) ||
-                !!(kind & TypeFlags.BigIntLike) && isTypeAssignableTo(source, bigintType) ||
                 !!(kind & TypeFlags.StringLike) && isTypeAssignableTo(source, stringType) ||
                 !!(kind & TypeFlags.BooleanLike) && isTypeAssignableTo(source, booleanType) ||
                 !!(kind & TypeFlags.Void) && isTypeAssignableTo(source, voidType) ||
@@ -34270,7 +34162,6 @@ namespace ts {
                 case SyntaxKind.TemplateExpression:
                 case SyntaxKind.NoSubstitutionTemplateLiteral:
                 case SyntaxKind.NumericLiteral:
-                case SyntaxKind.BigIntLiteral:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.NullKeyword:
@@ -34575,38 +34466,10 @@ namespace ts {
                         // otherwise just check each operand separately and report errors as normal
                         const leftOk = checkArithmeticOperandType(left, leftType, Diagnostics.The_left_hand_side_of_an_arithmetic_operation_must_be_of_type_any_number_bigint_or_an_enum_type, /*isAwaitValid*/ true);
                         const rightOk = checkArithmeticOperandType(right, rightType, Diagnostics.The_right_hand_side_of_an_arithmetic_operation_must_be_of_type_any_number_bigint_or_an_enum_type, /*isAwaitValid*/ true);
-                        let resultType: Type;
-                        // If both are any or unknown, allow operation; assume it will resolve to number
-                        if ((isTypeAssignableToKind(leftType, TypeFlags.AnyOrUnknown) && isTypeAssignableToKind(rightType, TypeFlags.AnyOrUnknown)) ||
-                            // Or, if neither could be bigint, implicit coercion results in a number result
-                            !(maybeTypeOfKind(leftType, TypeFlags.BigIntLike) || maybeTypeOfKind(rightType, TypeFlags.BigIntLike))
-                        ) {
-                            resultType = numberType;
-                        }
-                        // At least one is assignable to bigint, so check that both are
-                        else if (bothAreBigIntLike(leftType, rightType)) {
-                            switch (operator) {
-                                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
-                                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-                                    reportOperatorError();
-                                    break;
-                                case SyntaxKind.AsteriskAsteriskToken:
-                                case SyntaxKind.AsteriskAsteriskEqualsToken:
-                                    if (languageVersion < ScriptTarget.ES2016) {
-                                        error(errorNode, Diagnostics.Exponentiation_cannot_be_performed_on_bigint_values_unless_the_target_option_is_set_to_es2016_or_later);
-                                    }
-                            }
-                            resultType = bigintType;
-                        }
-                        // Exactly one of leftType/rightType is assignable to bigint
-                        else {
-                            reportOperatorError(bothAreBigIntLike);
-                            resultType = errorType;
-                        }
                         if (leftOk && rightOk) {
-                            checkAssignmentOperator(resultType);
+                            checkAssignmentOperator(numberType);
                         }
-                        return resultType;
+                        return numberType;
                     }
                 case SyntaxKind.PlusToken:
                 case SyntaxKind.PlusEqualsToken:
@@ -34630,10 +34493,6 @@ namespace ts {
                         // If both operands are of the Number primitive type, the result is of the Number primitive type.
                         resultType = numberType;
                     }
-                    else if (isTypeAssignableToKind(leftType, TypeFlags.BigIntLike, /*strict*/ true) && isTypeAssignableToKind(rightType, TypeFlags.BigIntLike, /*strict*/ true)) {
-                        // If both operands are of the BigInt primitive type, the result is of the BigInt primitive type.
-                        resultType = bigintType;
-                    }
                     else if (isTypeAssignableToKind(leftType, TypeFlags.StringLike, /*strict*/ true) || isTypeAssignableToKind(rightType, TypeFlags.StringLike, /*strict*/ true)) {
                         // If one or both operands are of the String primitive type, the result is of the String primitive type.
                         resultType = stringType;
@@ -34654,7 +34513,7 @@ namespace ts {
                         // If both types have an awaited type of one of these, we'll assume the user
                         // might be missing an await without doing an exhaustive check that inserting
                         // await(s) will actually be a completely valid binary expression.
-                        const closeEnoughKind = TypeFlags.NumberLike | TypeFlags.BigIntLike | TypeFlags.StringLike | TypeFlags.AnyOrUnknown;
+                        const closeEnoughKind = TypeFlags.NumberLike | TypeFlags.StringLike | TypeFlags.AnyOrUnknown;
                         reportOperatorError((left, right) =>
                             isTypeAssignableToKind(left, closeEnoughKind) &&
                             isTypeAssignableToKind(right, closeEnoughKind));
@@ -34674,7 +34533,7 @@ namespace ts {
                         rightType = getBaseTypeOfLiteralType(checkNonNullType(rightType, right));
                         reportOperatorErrorUnless((left, right) =>
                             isTypeComparableTo(left, right) || isTypeComparableTo(right, left) || (
-                                isTypeAssignableTo(left, numberOrBigIntType) && isTypeAssignableTo(right, numberOrBigIntType)));
+                                isTypeAssignableTo(left, numberType) && isTypeAssignableTo(right, numberType)));
                     }
                     return booleanType;
                 case SyntaxKind.EqualsEqualsToken:
@@ -34757,10 +34616,6 @@ namespace ts {
 
                 default:
                     return Debug.fail();
-            }
-
-            function bothAreBigIntLike(left: Type, right: Type): boolean {
-                return isTypeAssignableToKind(left, TypeFlags.BigIntLike) && isTypeAssignableToKind(right, TypeFlags.BigIntLike);
             }
 
             function checkAssignmentDeclaration(kind: AssignmentDeclarationKind, rightType: Type) {
@@ -35185,7 +35040,6 @@ namespace ts {
                     const constraint = getBaseConstraintOfType(contextualType) || unknownType;
                     return maybeTypeOfKind(constraint, TypeFlags.String) && maybeTypeOfKind(candidateType, TypeFlags.StringLiteral) ||
                         maybeTypeOfKind(constraint, TypeFlags.Number) && maybeTypeOfKind(candidateType, TypeFlags.NumberLiteral) ||
-                        maybeTypeOfKind(constraint, TypeFlags.BigInt) && maybeTypeOfKind(candidateType, TypeFlags.BigIntLiteral) ||
                         maybeTypeOfKind(constraint, TypeFlags.ESSymbol) && maybeTypeOfKind(candidateType, TypeFlags.UniqueESSymbol) ||
                         isLiteralOfContextualType(candidateType, constraint);
                 }
@@ -35193,7 +35047,6 @@ namespace ts {
                 // literal context for all literals of that primitive type.
                 return !!(contextualType.flags & (TypeFlags.StringLiteral | TypeFlags.Index | TypeFlags.TemplateLiteral | TypeFlags.StringMapping) && maybeTypeOfKind(candidateType, TypeFlags.StringLiteral) ||
                     contextualType.flags & TypeFlags.NumberLiteral && maybeTypeOfKind(candidateType, TypeFlags.NumberLiteral) ||
-                    contextualType.flags & TypeFlags.BigIntLiteral && maybeTypeOfKind(candidateType, TypeFlags.BigIntLiteral) ||
                     contextualType.flags & TypeFlags.BooleanLiteral && maybeTypeOfKind(candidateType, TypeFlags.BooleanLiteral) ||
                     contextualType.flags & TypeFlags.UniqueESSymbol && maybeTypeOfKind(candidateType, TypeFlags.UniqueESSymbol));
             }
@@ -35550,12 +35403,6 @@ namespace ts {
                 case SyntaxKind.NumericLiteral:
                     checkGrammarNumericLiteral(node as NumericLiteral);
                     return getFreshTypeOfLiteralType(getNumberLiteralType(+(node as NumericLiteral).text));
-                case SyntaxKind.BigIntLiteral:
-                    checkGrammarBigIntLiteral(node as BigIntLiteral);
-                    return getFreshTypeOfLiteralType(getBigIntLiteralType({
-                        negative: false,
-                        base10Value: parsePseudoBigInt((node as BigIntLiteral).text)
-                    }));
                 case SyntaxKind.TrueKeyword:
                     return trueType;
                 case SyntaxKind.FalseKeyword:
@@ -40169,7 +40016,6 @@ namespace ts {
                 case "unknown":
                 case "never":
                 case "number":
-                case "bigint":
                 case "vector":
                 case "boolean":
                 case "string":
@@ -43832,9 +43678,6 @@ namespace ts {
             else if (isTypeAssignableToKind(type, TypeFlags.NumberLike)) {
                 return TypeReferenceSerializationKind.NumberLikeType;
             }
-            else if (isTypeAssignableToKind(type, TypeFlags.BigIntLike)) {
-                return TypeReferenceSerializationKind.BigIntLikeType;
-            }
             else if (isTypeAssignableToKind(type, TypeFlags.StringLike)) {
                 return TypeReferenceSerializationKind.StringLikeType;
             }
@@ -43966,8 +43809,7 @@ namespace ts {
                 : type === trueType ? factory.createTrue() : type === falseType && factory.createFalse();
             if (enumResult) return enumResult;
             const literalValue = (type as LiteralType).value;
-            return typeof literalValue === "object" ? factory.createBigIntLiteral(literalValue) :
-                typeof literalValue === "number" ? factory.createNumericLiteral(literalValue) :
+            return typeof literalValue === "number" ? factory.createNumericLiteral(literalValue) :
                 factory.createStringLiteral(literalValue);
         }
 
@@ -45676,12 +45518,6 @@ namespace ts {
                 (expr as PrefixUnaryExpression).operand.kind === SyntaxKind.NumericLiteral;
         }
 
-        function isBigIntLiteralExpression(expr: Expression) {
-            return expr.kind === SyntaxKind.BigIntLiteral ||
-                expr.kind === SyntaxKind.PrefixUnaryExpression && (expr as PrefixUnaryExpression).operator === SyntaxKind.MinusToken &&
-                (expr as PrefixUnaryExpression).operand.kind === SyntaxKind.BigIntLiteral;
-        }
-
         function isSimpleLiteralEnumReference(expr: Expression) {
             if ((isPropertyAccessExpression(expr) || (isElementAccessExpression(expr) && isStringOrNumberLiteralExpression(expr.argumentExpression))) &&
                 isEntityNameExpression(expr.expression)) {
@@ -45695,8 +45531,7 @@ namespace ts {
                 const isInvalidInitializer = !(
                     isStringOrNumberLiteralExpression(initializer) ||
                     isSimpleLiteralEnumReference(initializer) ||
-                    initializer.kind === SyntaxKind.TrueKeyword || initializer.kind === SyntaxKind.FalseKeyword ||
-                    isBigIntLiteralExpression(initializer)
+                    initializer.kind === SyntaxKind.TrueKeyword || initializer.kind === SyntaxKind.FalseKeyword
                 );
                 const isConstOrReadonly = isDeclarationReadonly(node) || isVariableDeclaration(node) && isVarConst(node);
                 if (isConstOrReadonly && !node.type) {
@@ -46078,19 +45913,6 @@ namespace ts {
             }
 
             addErrorOrSuggestion(/*isError*/ false, createDiagnosticForNode(node, Diagnostics.Numeric_literals_with_absolute_values_equal_to_2_53_or_greater_are_too_large_to_be_represented_accurately_as_integers));
-        }
-
-        function checkGrammarBigIntLiteral(node: BigIntLiteral): boolean {
-            const literalType = isLiteralTypeNode(node.parent) ||
-                isPrefixUnaryExpression(node.parent) && isLiteralTypeNode(node.parent.parent);
-            if (!literalType) {
-                if (languageVersion < ScriptTarget.ES2020) {
-                    if (grammarErrorOnNode(node, Diagnostics.BigInt_literals_are_not_available_when_targeting_lower_than_ES2020)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
 
         function grammarErrorAfterFirstToken(node: Node, message: DiagnosticMessage, arg0?: any, arg1?: any, arg2?: any): boolean {

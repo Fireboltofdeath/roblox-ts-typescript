@@ -239,9 +239,6 @@ namespace ts {
                 case SyntaxKind.NumberKeyword:
                     return factory.createIdentifier("Number");
 
-                case SyntaxKind.BigIntKeyword:
-                    return getGlobalConstructor("BigInt", ScriptTarget.ES2020);
-
                 case SyntaxKind.SymbolKeyword:
                     return getGlobalConstructor("Symbol", ScriptTarget.ES2015);
 
@@ -303,8 +300,7 @@ namespace ts {
                     const operand = (node as PrefixUnaryExpression).operand;
                     switch (operand.kind) {
                         case SyntaxKind.NumericLiteral:
-                        case SyntaxKind.BigIntLiteral:
-                            return serializeLiteralOfLiteralTypeNode(operand as NumericLiteral | BigIntLiteral);
+                            return serializeLiteralOfLiteralTypeNode(operand as NumericLiteral);
                         default:
                             return Debug.failBadSyntaxKind(operand);
                     }
@@ -312,9 +308,6 @@ namespace ts {
 
                 case SyntaxKind.NumericLiteral:
                     return factory.createIdentifier("Number");
-
-                case SyntaxKind.BigIntLiteral:
-                    return getGlobalConstructor("BigInt", ScriptTarget.ES2020);
 
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -449,9 +442,6 @@ namespace ts {
 
                 case TypeReferenceSerializationKind.VoidNullableOrNeverType:
                     return factory.createVoidZero();
-
-                case TypeReferenceSerializationKind.BigIntLikeType:
-                    return getGlobalConstructor("BigInt", ScriptTarget.ES2020);
 
                 case TypeReferenceSerializationKind.BooleanType:
                     return factory.createIdentifier("Boolean");

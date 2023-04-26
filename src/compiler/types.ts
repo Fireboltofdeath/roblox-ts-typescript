@@ -32,7 +32,6 @@ namespace ts {
         ConflictMarkerTrivia,
         // Literals
         NumericLiteral,
-        BigIntLiteral,
         StringLiteral,
         JsxText,
         JsxTextAllWhiteSpaces,
@@ -195,7 +194,6 @@ namespace ts {
         UnknownKeyword,
         FromKeyword,
         GlobalKeyword,
-        BigIntKeyword,
         OverrideKeyword,
         OfKeyword, // LastKeyword and LastToken and LastContextualKeyword
 
@@ -477,7 +475,6 @@ namespace ts {
 
     export type LiteralSyntaxKind =
         | SyntaxKind.NumericLiteral
-        | SyntaxKind.BigIntLiteral
         | SyntaxKind.StringLiteral
         | SyntaxKind.JsxText
         | SyntaxKind.JsxTextAllWhiteSpaces
@@ -561,7 +558,6 @@ namespace ts {
         | SyntaxKind.AssertKeyword
         | SyntaxKind.AsyncKeyword
         | SyntaxKind.AwaitKeyword
-        | SyntaxKind.BigIntKeyword
         | SyntaxKind.BooleanKeyword
         | SyntaxKind.VectorKeyword
         | SyntaxKind.ThreadKeyword
@@ -660,7 +656,6 @@ namespace ts {
 
     export type KeywordTypeSyntaxKind =
         | SyntaxKind.AnyKeyword
-        | SyntaxKind.BigIntKeyword
         | SyntaxKind.BooleanKeyword
         | SyntaxKind.VectorKeyword
         | SyntaxKind.ThreadKeyword
@@ -2563,13 +2558,8 @@ namespace ts {
         readonly numericLiteralFlags: TokenFlags;
     }
 
-    export interface BigIntLiteral extends LiteralExpression {
-        readonly kind: SyntaxKind.BigIntLiteral;
-    }
-
     export type LiteralToken =
         | NumericLiteral
-        | BigIntLiteral
         | StringLiteral
         | JsxText
         | RegularExpressionLiteral
@@ -5193,9 +5183,6 @@ namespace ts {
         // The TypeReferenceNode resolves to a Number-like type.
         NumberLikeType,
 
-        // The TypeReferenceNode resolves to a BigInt-like type.
-        BigIntLikeType,
-
         // The TypeReferenceNode resolves to a String-like type.
         StringLikeType,
 
@@ -5593,60 +5580,57 @@ namespace ts {
         Number          = 1 << 3,
         Boolean         = 1 << 4,
         Enum            = 1 << 5,
-        BigInt          = 1 << 6,
-        StringLiteral   = 1 << 7,
-        NumberLiteral   = 1 << 8,
-        BooleanLiteral  = 1 << 9,
-        EnumLiteral     = 1 << 10,  // Always combined with StringLiteral, NumberLiteral, or Union
-        BigIntLiteral   = 1 << 11,
-        ESSymbol        = 1 << 12,  // Type of symbol primitive introduced in ES6
-        UniqueESSymbol  = 1 << 13,  // unique symbol
-        Void            = 1 << 14,
-        Undefined       = 1 << 15,
-        Null            = 1 << 16,
-        Never           = 1 << 17,  // Never type
-        TypeParameter   = 1 << 18,  // Type parameter
-        Object          = 1 << 19,  // Object type
-        Union           = 1 << 20,  // Union (T | U)
-        Intersection    = 1 << 21,  // Intersection (T & U)
-        Index           = 1 << 22,  // keyof T
-        IndexedAccess   = 1 << 23,  // T[K]
-        Conditional     = 1 << 24,  // T extends U ? X : Y
-        Substitution    = 1 << 25,  // Type parameter substitution
-        NonPrimitive    = 1 << 26,  // intrinsic object type
-        TemplateLiteral = 1 << 27,  // Template literal type
-        StringMapping   = 1 << 28,  // Uppercase/Lowercase type
-        Vector          = 1 << 29,  // Luau vector type
-        Thread          = 1 << 30,  // Luau thread type
-        Userdata        = 1 << 31,  // Luau userdata type
+        StringLiteral   = 1 << 6,
+        NumberLiteral   = 1 << 7,
+        BooleanLiteral  = 1 << 8,
+        EnumLiteral     = 1 << 9,  // Always combined with StringLiteral, NumberLiteral, or Union
+        ESSymbol        = 1 << 10,  // Type of symbol primitive introduced in ES6
+        UniqueESSymbol  = 1 << 11,  // unique symbol
+        Void            = 1 << 12,
+        Undefined       = 1 << 13,
+        Null            = 1 << 14,
+        Never           = 1 << 15,  // Never type
+        TypeParameter   = 1 << 16,  // Type parameter
+        Object          = 1 << 17,  // Object type
+        Union           = 1 << 18,  // Union (T | U)
+        Intersection    = 1 << 19,  // Intersection (T & U)
+        Index           = 1 << 20,  // keyof T
+        IndexedAccess   = 1 << 21,  // T[K]
+        Conditional     = 1 << 22,  // T extends U ? X : Y
+        Substitution    = 1 << 23,  // Type parameter substitution
+        NonPrimitive    = 1 << 24,  // intrinsic object type
+        TemplateLiteral = 1 << 25,  // Template literal type
+        StringMapping   = 1 << 26,  // Uppercase/Lowercase type
+        Vector          = 1 << 27,  // Luau vector type
+        Thread          = 1 << 28,  // Luau thread type
+        Userdata        = 1 << 29,  // Luau userdata type
 
         /* @internal */
         AnyOrUnknown = Any | Unknown,
         /* @internal */
         Nullable = Undefined | Null,
-        Literal = StringLiteral | NumberLiteral | BigIntLiteral | BooleanLiteral,
+        Literal = StringLiteral | NumberLiteral | BooleanLiteral,
         Unit = Literal | UniqueESSymbol | Nullable,
         StringOrNumberLiteral = StringLiteral | NumberLiteral,
         /* @internal */
         StringOrNumberLiteralOrUnique = StringLiteral | NumberLiteral | UniqueESSymbol,
         /* @internal */
-        DefinitelyFalsy = StringLiteral | NumberLiteral | BigIntLiteral | BooleanLiteral | Void | Undefined | Null,
-        PossiblyFalsy = DefinitelyFalsy | String | Number | BigInt | Boolean,
+        DefinitelyFalsy = StringLiteral | NumberLiteral | BooleanLiteral | Void | Undefined | Null,
+        PossiblyFalsy = DefinitelyFalsy | String | Number | Boolean,
         /* @internal */
-        Intrinsic = Any | Unknown | String | Number | BigInt | Boolean | BooleanLiteral | ESSymbol | Void | Undefined | Null | Never | NonPrimitive | Vector | Thread | Userdata,
+        Intrinsic = Any | Unknown | String | Number | Boolean | BooleanLiteral | ESSymbol | Void | Undefined | Null | Never | NonPrimitive | Vector | Thread | Userdata,
         /* @internal */
-        Primitive = String | Number | BigInt | Boolean | Enum | EnumLiteral | ESSymbol | Void | Undefined | Null | Literal | UniqueESSymbol | Vector | Thread | Userdata,
+        Primitive = String | Number | Boolean | Enum | EnumLiteral | ESSymbol | Void | Undefined | Null | Literal | UniqueESSymbol | Vector | Thread | Userdata,
         StringLike = String | StringLiteral | TemplateLiteral | StringMapping,
         NumberLike = Number | NumberLiteral | Enum,
-        BigIntLike = BigInt | BigIntLiteral,
         BooleanLike = Boolean | BooleanLiteral,
         EnumLike = Enum | EnumLiteral,
         ESSymbolLike = ESSymbol | UniqueESSymbol,
         VoidLike = Void | Undefined,
         /* @internal */
-        DefinitelyNonNullable = StringLike | NumberLike | BigIntLike | BooleanLike | EnumLike | ESSymbolLike | Object | NonPrimitive,
+        DefinitelyNonNullable = StringLike | NumberLike | BooleanLike | EnumLike | ESSymbolLike | Object | NonPrimitive,
         /* @internal */
-        DisjointDomains = NonPrimitive | StringLike | NumberLike | BigIntLike | BooleanLike | ESSymbolLike | VoidLike | Null,
+        DisjointDomains = NonPrimitive | StringLike | NumberLike | BooleanLike | ESSymbolLike | VoidLike | Thread | Vector | Userdata | Null,
         UnionOrIntersection = Union | Intersection,
         StructuredType = Object | Union | Intersection,
         TypeVariable = TypeParameter | IndexedAccess,
@@ -5659,10 +5643,10 @@ namespace ts {
         /* @internal */
         Simplifiable = IndexedAccess | Conditional,
         /* @internal */
-        Singleton = Any | Unknown | String | Number | Boolean | BigInt | ESSymbol | Void | Undefined | Null | Never | NonPrimitive,
+        Singleton = Any | Unknown | String | Number | Boolean | ESSymbol | Void | Undefined | Null | Never | NonPrimitive,
         // 'Narrowable' types are types where narrowing actually narrows.
         // This *should* be every type other than null, undefined, void, and never
-        Narrowable = Any | Unknown | StructuredOrInstantiable | StringLike | NumberLike | BigIntLike | BooleanLike | ESSymbol | UniqueESSymbol | NonPrimitive,
+        Narrowable = Any | Unknown | StructuredOrInstantiable | StringLike | NumberLike | BooleanLike | ESSymbol | UniqueESSymbol | NonPrimitive,
         // The following flags are aggregated during union and intersection type construction
         /* @internal */
         IncludesMask = Any | Unknown | Primitive | Never | Object | Union | Intersection | NonPrimitive | TemplateLiteral,
@@ -5730,9 +5714,8 @@ namespace ts {
 
     // String literal types (TypeFlags.StringLiteral)
     // Numeric literal types (TypeFlags.NumberLiteral)
-    // BigInt literal types (TypeFlags.BigIntLiteral)
     export interface LiteralType extends Type {
-        value: string | number | PseudoBigInt; // Value of literal
+        value: string | number; // Value of literal
         freshType: LiteralType;                // Fresh version of type
         regularType: LiteralType;              // Regular version of type
     }
@@ -5749,10 +5732,6 @@ namespace ts {
 
     export interface NumberLiteralType extends LiteralType {
         value: number;
-    }
-
-    export interface BigIntLiteralType extends LiteralType {
-        value: PseudoBigInt;
     }
 
     // Enum types (TypeFlags.Enum)
@@ -6622,6 +6601,7 @@ namespace ts {
         noImplicitReturns?: boolean;
         noImplicitThis?: boolean;  // Always combine with strict property
         noStrictGenericChecks?: boolean;
+        forInIsUnknown?: boolean;
         noUnusedLocals?: boolean;
         noUnusedParameters?: boolean;
         noImplicitUseStrict?: boolean;
@@ -7655,7 +7635,6 @@ namespace ts {
         //
 
         createNumericLiteral(value: string | number, numericLiteralFlags?: TokenFlags): NumericLiteral;
-        createBigIntLiteral(value: string | PseudoBigInt): BigIntLiteral;
         createStringLiteral(text: string, isSingleQuote?: boolean): StringLiteral;
         /* @internal*/ createStringLiteral(text: string, isSingleQuote?: boolean, hasExtendedUnicodeEscape?: boolean): StringLiteral; // eslint-disable-line @typescript-eslint/unified-signatures
         createStringLiteralFromNode(sourceNode: PropertyNameLiteral | PrivateIdentifier, isSingleQuote?: boolean): StringLiteral;
@@ -9270,12 +9249,6 @@ namespace ts {
         readonly includeInlayEnumMemberValueHints?: boolean;
         readonly allowRenameOfImportPath?: boolean;
         readonly autoImportFileExcludePatterns?: string[];
-    }
-
-    /** Represents a bigint literal value without requiring bigint support */
-    export interface PseudoBigInt {
-        negative: boolean;
-        base10Value: string;
     }
 
     /* @internal */

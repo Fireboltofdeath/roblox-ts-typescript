@@ -1702,8 +1702,7 @@ namespace ts {
                 switch (node.kind) {
                     // Literals
                     case SyntaxKind.NumericLiteral:
-                    case SyntaxKind.BigIntLiteral:
-                        return emitNumericOrBigIntLiteral(node as NumericLiteral | BigIntLiteral);
+                        return emitNumericLiteral(node as NumericLiteral);
 
                     case SyntaxKind.StringLiteral:
                     case SyntaxKind.RegularExpressionLiteral:
@@ -1909,7 +1908,7 @@ namespace ts {
 
         // SyntaxKind.NumericLiteral
         // SyntaxKind.BigIntLiteral
-        function emitNumericOrBigIntLiteral(node: NumericLiteral | BigIntLiteral) {
+        function emitNumericLiteral(node: NumericLiteral) {
             emitLiteral(node, /*jsxAttributeEscape*/ false);
         }
 

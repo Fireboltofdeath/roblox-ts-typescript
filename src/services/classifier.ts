@@ -186,7 +186,6 @@ namespace ts {
         SyntaxKind.Identifier,
         SyntaxKind.StringLiteral,
         SyntaxKind.NumericLiteral,
-        SyntaxKind.BigIntLiteral,
         SyntaxKind.RegularExpressionLiteral,
         SyntaxKind.ThisKeyword,
         SyntaxKind.PlusPlusToken,
@@ -291,7 +290,6 @@ namespace ts {
             case ClassificationType.comment: return TokenClass.Comment;
             case ClassificationType.keyword: return TokenClass.Keyword;
             case ClassificationType.numericLiteral: return TokenClass.NumberLiteral;
-            case ClassificationType.bigintLiteral: return TokenClass.BigIntLiteral;
             case ClassificationType.operator: return TokenClass.Operator;
             case ClassificationType.stringLiteral: return TokenClass.StringLiteral;
             case ClassificationType.whiteSpace: return TokenClass.Whitespace;
@@ -434,8 +432,6 @@ namespace ts {
         switch (token) {
             case SyntaxKind.NumericLiteral:
                 return ClassificationType.numericLiteral;
-            case SyntaxKind.BigIntLiteral:
-                return ClassificationType.bigintLiteral;
             case SyntaxKind.StringLiteral:
                 return ClassificationType.stringLiteral;
             case SyntaxKind.RegularExpressionLiteral:
@@ -561,7 +557,6 @@ namespace ts {
             case ClassificationType.identifier: return ClassificationTypeNames.identifier;
             case ClassificationType.keyword: return ClassificationTypeNames.keyword;
             case ClassificationType.numericLiteral: return ClassificationTypeNames.numericLiteral;
-            case ClassificationType.bigintLiteral: return ClassificationTypeNames.bigintLiteral;
             case ClassificationType.operator: return ClassificationTypeNames.operator;
             case ClassificationType.stringLiteral: return ClassificationTypeNames.stringLiteral;
             case ClassificationType.whiteSpace: return ClassificationTypeNames.whiteSpace;
@@ -1028,9 +1023,6 @@ namespace ts {
             }
             else if (tokenKind === SyntaxKind.NumericLiteral) {
                 return ClassificationType.numericLiteral;
-            }
-            else if (tokenKind === SyntaxKind.BigIntLiteral) {
-                return ClassificationType.bigintLiteral;
             }
             else if (tokenKind === SyntaxKind.StringLiteral) {
                 return token && token.parent.kind === SyntaxKind.JsxAttribute ? ClassificationType.jsxAttributeStringLiteralValue : ClassificationType.stringLiteral;

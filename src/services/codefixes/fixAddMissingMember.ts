@@ -534,9 +534,6 @@ namespace ts.codefix {
         if (type.flags & TypeFlags.Number) {
             return factory.createNumericLiteral(0);
         }
-        if (type.flags & TypeFlags.BigInt) {
-            return factory.createBigIntLiteral("0n");
-        }
         if (type.flags & TypeFlags.Boolean) {
             return factory.createFalse();
         }
@@ -547,9 +544,6 @@ namespace ts.codefix {
         }
         if (type.flags & TypeFlags.NumberLiteral) {
             return factory.createNumericLiteral((type as NumberLiteralType).value);
-        }
-        if (type.flags & TypeFlags.BigIntLiteral) {
-            return factory.createBigIntLiteral((type as BigIntLiteralType).value);
         }
         if (type.flags & TypeFlags.StringLiteral) {
             return factory.createStringLiteral((type as StringLiteralType).value, /* isSingleQuote */ quotePreference === QuotePreference.Single);

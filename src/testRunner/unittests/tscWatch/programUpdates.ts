@@ -1355,13 +1355,13 @@ foo().hello`
                 const aFile: File = {
                     path: `${projectRoot}/a.ts`,
                     content: `declare var v: {
-    reallyLongPropertyName1: string | number | boolean | object | symbol | bigint;
-    reallyLongPropertyName2: string | number | boolean | object | symbol | bigint;
-    reallyLongPropertyName3: string | number | boolean | object | symbol | bigint;
-    reallyLongPropertyName4: string | number | boolean | object | symbol | bigint;
-    reallyLongPropertyName5: string | number | boolean | object | symbol | bigint;
-    reallyLongPropertyName6: string | number | boolean | object | symbol | bigint;
-    reallyLongPropertyName7: string | number | boolean | object | symbol | bigint;
+    reallyLongPropertyName1: string | number | boolean | object | symbol | BigInt;
+    reallyLongPropertyName2: string | number | boolean | object | symbol | BigInt;
+    reallyLongPropertyName3: string | number | boolean | object | symbol | BigInt;
+    reallyLongPropertyName4: string | number | boolean | object | symbol | BigInt;
+    reallyLongPropertyName5: string | number | boolean | object | symbol | BigInt;
+    reallyLongPropertyName6: string | number | boolean | object | symbol | BigInt;
+    reallyLongPropertyName7: string | number | boolean | object | symbol | BigInt;
 };
 v === 'foo';`
                 };

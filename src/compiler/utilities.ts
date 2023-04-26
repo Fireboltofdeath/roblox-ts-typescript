@@ -616,13 +616,10 @@ namespace ts {
                 Symbol: ["description"]
             },
             es2020: {
-                BigInt: emptyArray,
-                BigInt64Array: emptyArray,
                 BigUint64Array: emptyArray,
                 PromiseConstructor: ["allSettled"],
                 SymbolConstructor: ["matchAll"],
                 String: ["matchAll"],
-                DataView: ["setBigInt64", "setBigUint64", "getBigInt64", "getBigUint64"],
                 RelativeTimeFormat: ["format", "formatToParts", "resolvedOptions"]
             },
             es2021: {
@@ -641,7 +638,6 @@ namespace ts {
                 Uint32Array: ["at"],
                 Float32Array: ["at"],
                 Float64Array: ["at"],
-                BigInt64Array: ["at"],
                 BigUint64Array: ["at"],
                 ObjectConstructor: ["hasOwn"],
                 Error: ["cause"]
@@ -701,7 +697,6 @@ namespace ts {
                 break;
             }
             case SyntaxKind.NumericLiteral:
-            case SyntaxKind.BigIntLiteral:
                 return node.text;
             case SyntaxKind.RegularExpressionLiteral:
                 if (flags & GetLiteralTextFlags.TerminateUnterminatedLiterals && node.isUnterminated) {
@@ -722,7 +717,7 @@ namespace ts {
             return !!(flags & GetLiteralTextFlags.AllowNumericSeparator);
         }
 
-        return !isBigIntLiteral(node);
+        return true;
     }
 
     export function getTextOfConstantValue(value: string | number) {
@@ -1306,7 +1301,6 @@ namespace ts {
             case SyntaxKind.AnyKeyword:
             case SyntaxKind.UnknownKeyword:
             case SyntaxKind.NumberKeyword:
-            case SyntaxKind.BigIntKeyword:
             case SyntaxKind.StringKeyword:
             case SyntaxKind.BooleanKeyword:
             case SyntaxKind.VectorKeyword:
@@ -2046,7 +2040,6 @@ namespace ts {
                 // falls through
 
             case SyntaxKind.NumericLiteral:
-            case SyntaxKind.BigIntLiteral:
             case SyntaxKind.StringLiteral:
             case SyntaxKind.NoSubstitutionTemplateLiteral:
             case SyntaxKind.ThisKeyword:
@@ -3822,7 +3815,6 @@ namespace ts {
             case SyntaxKind.TrueKeyword:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.NumericLiteral:
-            case SyntaxKind.BigIntLiteral:
             case SyntaxKind.StringLiteral:
             case SyntaxKind.ArrayLiteralExpression:
             case SyntaxKind.ObjectLiteralExpression:
@@ -5824,7 +5816,6 @@ namespace ts {
             || kind === SyntaxKind.AnyKeyword
             || kind === SyntaxKind.UnknownKeyword
             || kind === SyntaxKind.NumberKeyword
-            || kind === SyntaxKind.BigIntKeyword
             || kind === SyntaxKind.ObjectKeyword
             || kind === SyntaxKind.BooleanKeyword
             || kind === SyntaxKind.VectorKeyword
@@ -7313,10 +7304,6 @@ namespace ts {
             base10Value = mod10 + base10Value;
         }
         return base10Value;
-    }
-
-    export function pseudoBigIntToString({negative, base10Value}: PseudoBigInt): string {
-        return (negative && base10Value !== "0" ? "-" : "") + base10Value;
     }
 
     export function isValidTypeOnlyAliasUseSite(useSite: Node): boolean {

@@ -48,6 +48,6 @@ declare namespace Intl {
     }
 
     interface NumberFormat {
-        formatToParts(number?: number | bigint): NumberFormatPart[];
+        formatToParts(number?: number | BigInt): NumberFormatPart[];
     }
 }

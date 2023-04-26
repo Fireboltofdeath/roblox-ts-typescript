@@ -5,10 +5,6 @@ namespace ts {
         return node.kind === SyntaxKind.NumericLiteral;
     }
 
-    export function isBigIntLiteral(node: Node): node is BigIntLiteral {
-        return node.kind === SyntaxKind.BigIntLiteral;
-    }
-
     export function isStringLiteral(node: Node): node is StringLiteral {
         return node.kind === SyntaxKind.StringLiteral;
     }

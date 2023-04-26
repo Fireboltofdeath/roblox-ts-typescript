@@ -48,7 +48,6 @@ namespace ts {
             flags,
             createNodeArray,
             createNumericLiteral,
-            createBigIntLiteral,
             createStringLiteral,
             createStringLiteralFromNode,
             createRegularExpressionLiteral,
@@ -799,13 +798,6 @@ namespace ts {
             return node;
         }
 
-        // @api
-        function createBigIntLiteral(value: string | PseudoBigInt): BigIntLiteral {
-            const node = createBaseLiteral<BigIntLiteral>(SyntaxKind.BigIntLiteral, typeof value === "string" ? value : pseudoBigIntToString(value) + "n");
-            node.transformFlags |= TransformFlags.ContainsESNext;
-            return node;
-        }
-
         function createBaseStringLiteral(text: string, isSingleQuote?: boolean) {
             const node = createBaseLiteral<StringLiteral>(SyntaxKind.StringLiteral, text);
             node.singleQuote = isSingleQuote;
@@ -837,7 +829,6 @@ namespace ts {
         function createLiteralLikeNode(kind: LiteralToken["kind"] | SyntaxKind.JsxTextAllWhiteSpaces, text: string): LiteralToken {
             switch (kind) {
                 case SyntaxKind.NumericLiteral: return createNumericLiteral(text, /*numericLiteralFlags*/ 0);
-                case SyntaxKind.BigIntLiteral: return createBigIntLiteral(text);
                 case SyntaxKind.StringLiteral: return createStringLiteral(text, /*isSingleQuote*/ undefined);
                 case SyntaxKind.JsxText: return createJsxText(text, /*containsOnlyTriviaWhiteSpaces*/ false);
                 case SyntaxKind.JsxTextAllWhiteSpaces: return createJsxText(text, /*containsOnlyTriviaWhiteSpaces*/ true);
@@ -1023,7 +1014,6 @@ namespace ts {
                 case SyntaxKind.ConstKeyword:
                 case SyntaxKind.AnyKeyword:
                 case SyntaxKind.NumberKeyword:
-                case SyntaxKind.BigIntKeyword:
                 case SyntaxKind.NeverKeyword:
                 case SyntaxKind.ObjectKeyword:
                 case SyntaxKind.InKeyword:
@@ -5867,7 +5857,6 @@ namespace ts {
                     return cacheIdentifiers;
                 case SyntaxKind.ThisKeyword:
                 case SyntaxKind.NumericLiteral:
-                case SyntaxKind.BigIntLiteral:
                 case SyntaxKind.StringLiteral:
                     return false;
                 case SyntaxKind.ArrayLiteralExpression:
@@ -6514,7 +6503,6 @@ namespace ts {
                 return TransformFlags.MethodOrAccessorExcludes;
             case SyntaxKind.AnyKeyword:
             case SyntaxKind.NumberKeyword:
-            case SyntaxKind.BigIntKeyword:
             case SyntaxKind.NeverKeyword:
             case SyntaxKind.StringKeyword:
             case SyntaxKind.ObjectKeyword:

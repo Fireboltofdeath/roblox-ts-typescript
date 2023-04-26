@@ -4,7 +4,7 @@ declare namespace Intl {
   }
 
   interface NumberFormat {
-    formatRange(start: number | bigint, end: number | bigint): string;
-    formatRangeToParts(start: number | bigint, end: number | bigint): NumberRangeFormatPart[];
+    formatRange(start: number | BigInt, end: number | BigInt): string;
+    formatRangeToParts(start: number | BigInt, end: number | BigInt): NumberRangeFormatPart[];
   }
 }
