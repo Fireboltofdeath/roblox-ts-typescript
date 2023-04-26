@@ -363,6 +363,7 @@ namespace ts {
         const noImplicitAny = getStrictOptionValue(compilerOptions, "noImplicitAny");
         const noImplicitThis = getStrictOptionValue(compilerOptions, "noImplicitThis");
         const useUnknownInCatchVariables = getStrictOptionValue(compilerOptions, "useUnknownInCatchVariables");
+        const forInIsUnknown = !!compilerOptions.forInIsUnknown;
         const keyofStringsOnly = !!compilerOptions.keyofStringsOnly;
         const freshObjectLiteralFlag = compilerOptions.suppressExcessPropertyErrors ? 0 : ObjectFlags.FreshLiteral;
         const exactOptionalPropertyTypes = compilerOptions.exactOptionalPropertyTypes;
@@ -9145,7 +9146,8 @@ namespace ts {
             // right hand expression is of a type parameter type.
             if (isVariableDeclaration(declaration) && declaration.parent.parent.kind === SyntaxKind.ForInStatement) {
                 const indexType = getIndexType(getNonNullableTypeIfNeeded(checkExpression(declaration.parent.parent.expression, /*checkMode*/ checkMode)));
-                return indexType.flags & (TypeFlags.TypeParameter | TypeFlags.Index) ? getExtractStringType(indexType) : unknownType;
+                return indexType.flags & (TypeFlags.TypeParameter | TypeFlags.Index) ? getExtractStringType(indexType) :
+                    forInIsUnknown ? unknownType : stringType;
             }
 
             if (isVariableDeclaration(declaration) && declaration.parent.parent.kind === SyntaxKind.ForOfStatement) {
@@ -24188,7 +24190,7 @@ namespace ts {
             const { parent } = node;
             switch (parent.kind) {
                 case SyntaxKind.ForInStatement:
-                    return unknownType;
+                    return forInIsUnknown ? unknownType : stringType;
                 case SyntaxKind.ForOfStatement:
                     return checkRightHandSideOfForOf(parent as ForOfStatement) || errorType;
                 case SyntaxKind.BinaryExpression:
@@ -24231,7 +24233,7 @@ namespace ts {
                 return getTypeOfInitializer(node.initializer);
             }
             if (node.parent.parent.kind === SyntaxKind.ForInStatement) {
-                return unknownType;
+                return forInIsUnknown ? unknownType : stringType;
             }
             if (node.parent.parent.kind === SyntaxKind.ForOfStatement) {
                 return checkRightHandSideOfForOf(node.parent.parent) || errorType;

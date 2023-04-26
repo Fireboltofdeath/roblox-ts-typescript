@@ -1331,6 +1331,14 @@ namespace ts {
             description: Diagnostics.Make_keyof_only_return_strings_instead_of_string_numbers_or_symbols_Legacy_option,
             defaultValueDescription: false,
         },
+
+        {
+            name: "forInIsUnknown",
+            type: "boolean",
+            category: Diagnostics.Type_Checking,
+            defaultValueDescription: true,
+        },
+
         {
             // A list of plugins to load in the language service
             name: "plugins",

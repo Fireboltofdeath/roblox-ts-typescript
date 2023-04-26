@@ -6599,6 +6599,7 @@ namespace ts {
         isolatedModules?: boolean;
         jsx?: JsxEmit;
         keyofStringsOnly?: boolean;
+        forInIsUnknown?: boolean;
         lib?: string[];
         /*@internal*/listEmittedFiles?: boolean;
         /*@internal*/listFiles?: boolean;
