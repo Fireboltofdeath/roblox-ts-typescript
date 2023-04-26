@@ -15321,6 +15321,9 @@ namespace ts {
                 includes & TypeFlags.StringLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.StringLike) ||
                 includes & TypeFlags.NumberLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.NumberLike) ||
                 includes & TypeFlags.BigIntLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.BigIntLike) ||
+                includes & TypeFlags.Thread && includes & (TypeFlags.DisjointDomains & ~TypeFlags.Thread) ||
+                includes & TypeFlags.Userdata && includes & (TypeFlags.DisjointDomains & ~TypeFlags.Userdata) ||
+                includes & TypeFlags.Vector && includes & (TypeFlags.DisjointDomains & ~TypeFlags.Vector) ||
                 includes & TypeFlags.ESSymbolLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.ESSymbolLike) ||
                 includes & TypeFlags.VoidLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.VoidLike)) {
                 return neverType;
