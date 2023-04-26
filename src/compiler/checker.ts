@@ -1092,7 +1092,11 @@ namespace ts {
             [SyntaxKind.AsteriskToken, "__mul"],
             [SyntaxKind.AsteriskEqualsToken, "__mul"],
             [SyntaxKind.SlashToken, "__div"],
-            [SyntaxKind.SlashEqualsToken, "__div"]
+            [SyntaxKind.SlashEqualsToken, "__div"],
+            [SyntaxKind.AsteriskAsteriskToken, "__pow"],
+            [SyntaxKind.AsteriskAsteriskEqualsToken, "__pow"],
+            [SyntaxKind.PercentToken, "__mod"],
+            [SyntaxKind.PercentEqualsToken, "__mod"],
         ]);
 
         initializeTypeChecker();
@@ -34512,7 +34516,7 @@ namespace ts {
                 const signatures = getSignaturesOfType(overload, SignatureKind.Call);
                 for (const signature of signatures) {
                     const parameterType = getTypeOfParameter(signature.parameters[0]);
-                    if (forEachType(rightType, (t) => isTypeAssignableTo(t, parameterType))) {
+                    if (typeMaybeAssignableTo(rightType, parameterType)) {
                         results.push(getReturnTypeOfSignature(signature));
                     }
                 }

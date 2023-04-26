@@ -6,26 +6,6 @@ interface SymbolConstructor {
      * for-of statement.
      */
     readonly iterator: unique symbol;
-
-    /**
-     * Overrides the binary operator `+`
-     */
-    readonly __add: unique symbol;
-
-    /**
-     * Overrides the binary operator `-`
-     */
-    readonly __sub: unique symbol;
-
-    /**
-     * Overrides the binary operator `*`
-     */
-    readonly __mul: unique symbol;
-
-    /**
-     * Overrides the binary operator `/`
-     */
-    readonly __div: unique symbol;
 }
 
 interface IteratorYieldResult<TYield> {

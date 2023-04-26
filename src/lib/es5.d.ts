@@ -2,6 +2,8 @@
 /// ECMAScript APIs
 /////////////////////////////
 
+/// <reference lib="roblox" />
+
 declare var NaN: number;
 declare var Infinity: number;
 
@@ -4504,13 +4506,3 @@ interface Date {
      */
     toLocaleTimeString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
 }
-
-interface Vector {
-    readonly X: number;
-    readonly Y: number;
-    readonly Z: number;
-}
-
-interface Thread {}
-
-interface Userdata {}
