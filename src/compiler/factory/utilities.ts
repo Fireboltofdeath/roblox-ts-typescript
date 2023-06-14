@@ -456,6 +456,15 @@ namespace ts {
         return node;
     }
 
+    export function skipOuterExpressionUpwards(node: Node, kinds = OuterExpressionKinds.All) {
+        let parent = node.parent;
+        while (parent && isOuterExpression(parent, kinds)) {
+            node = parent;
+            parent = node.parent;
+        }
+        return node;
+    }
+
     export function skipAssertions(node: Expression): Expression;
     export function skipAssertions(node: Node): Node;
     export function skipAssertions(node: Node): Node {

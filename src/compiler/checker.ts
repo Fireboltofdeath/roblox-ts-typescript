@@ -18348,6 +18348,57 @@ namespace ts {
                 isTypeAny(getReturnTypeOfSignature(s));
         }
 
+        function isSignatureDeclarationMethod(node: Node): boolean {
+            if (isFunctionLike(node)) {
+                const thisParam = getThisParameter(node);
+                if (thisParam) {
+                    return !(getTypeOfSymbol(thisParam.symbol).flags & TypeFlags.Void);
+                }
+                else {
+                    // namespace declare functions with `this` arg defined (i.e. utf8)
+                    if (isFunctionDeclaration(node)) {
+                        return false;
+                    }
+
+                    if (isMethodDeclaration(node) || isMethodSignature(node)) {
+                        return true;
+                    }
+
+                    // for some reason, FunctionExpressions within ObjectLiteralExpressions are implicitly methods
+                    if (isFunctionExpression(node)) {
+                        const parent = skipOuterExpressionUpwards(node).parent;
+                        if (isPropertyAssignment(parent)) {
+                            const grandparent = skipOuterExpressionUpwards(parent).parent;
+                            if (isObjectLiteralExpression(grandparent)) {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        function isSignatureMethod(signature: Signature) {
+            let hasMethodDefinition = false;
+
+            const thisValueDeclaration = signature.thisParameter?.valueDeclaration;
+            if (thisValueDeclaration) {
+                if (!(getTypeOfSymbol(thisValueDeclaration.symbol).flags & TypeFlags.Void)) {
+                    hasMethodDefinition = true;
+                }
+            }
+            else if (signature.declaration) {
+                if (isSignatureDeclarationMethod(signature.declaration)) {
+                    hasMethodDefinition = true;
+                }
+            }
+
+            return hasMethodDefinition;
+        }
+
         /**
          * See signatureRelatedTo, compareSignaturesIdentical
          */
@@ -18391,6 +18442,17 @@ namespace ts {
             const strictVariance = !(checkMode & SignatureCheckMode.Callback) && strictFunctionTypes && kind !== SyntaxKind.MethodDeclaration &&
                 kind !== SyntaxKind.MethodSignature && kind !== SyntaxKind.Constructor;
             let result = Ternary.True;
+
+            const sourceIsMethod = isSignatureMethod(source);
+            const targetIsMethod = isSignatureMethod(target);
+            if (sourceIsMethod !== targetIsMethod) {
+                if (reportErrors) {
+                    errorReporter!(sourceIsMethod ?
+                        Diagnostics.The_this_types_of_each_signature_are_in_compatible_Source_expects_this_but_target_does_not :
+                        Diagnostics.The_this_types_of_each_signature_are_in_compatible_Target_expects_this_but_source_does_not);
+                }
+                return Ternary.False;
+            }
 
             const sourceThisType = getThisTypeOfSignature(source);
             if (sourceThisType && sourceThisType !== voidType) {
@@ -18964,6 +19026,27 @@ namespace ts {
                 }
             }
 
+            function isMethodnessError(source: Type, target: Type) {
+                let sourceHasMethod = false;
+                let targetHasMethod = false;
+
+                for (const signature of getSignaturesOfType(source, SignatureKind.Call)) {
+                    sourceHasMethod = isSignatureMethod(signature);
+                    if (sourceHasMethod) {
+                        break;
+                    }
+                }
+
+                for (const signature of getSignaturesOfType(target, SignatureKind.Call)) {
+                    targetHasMethod = isSignatureMethod(signature);
+                    if (targetHasMethod) {
+                        break;
+                    }
+                }
+
+                return sourceHasMethod !== targetHasMethod;
+            }
+
             function reportRelationError(message: DiagnosticMessage | undefined, source: Type, target: Type) {
                 if (incompatibleStack) reportIncompatibleStack();
                 const [sourceType, targetType] = getTypeNamesForErrorDisplay(source, target);
@@ -19001,7 +19084,7 @@ namespace ts {
                     if (relation === comparableRelation) {
                         message = Diagnostics.Type_0_is_not_comparable_to_type_1;
                     }
-                    else if (sourceType === targetType) {
+                    else if (sourceType === targetType && !isMethodnessError(source, target)) {
                         message = Diagnostics.Type_0_is_not_assignable_to_type_1_Two_different_types_with_this_name_exist_but_they_are_unrelated;
                     }
                     else if (exactOptionalPropertyTypes && getExactOptionalUnassignableProperties(source, target).length) {
