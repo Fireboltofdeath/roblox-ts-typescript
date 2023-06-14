@@ -21890,31 +21890,6 @@ namespace ts {
         }
 
         /**
-         * Is source potentially coercible to target type under `==`.
-         * Assumes that `source` is a constituent of a union, hence
-         * the boolean literal flag on the LHS, but not on the RHS.
-         *
-         * This does not fully replicate the semantics of `==`. The
-         * intention is to catch cases that are clearly not right.
-         *
-         * Comparing (string | number) to number should not remove the
-         * string element.
-         *
-         * Comparing (string | number) to 1 will remove the string
-         * element, though this is not sound. This is a pragmatic
-         * choice.
-         *
-         * @see narrowTypeByEquality
-         *
-         * @param source
-         * @param target
-         */
-        function isCoercibleUnderDoubleEquals(source: Type, target: Type): boolean {
-            return ((source.flags & (TypeFlags.Number | TypeFlags.String | TypeFlags.BooleanLiteral)) !== 0)
-                && ((target.flags & (TypeFlags.Number | TypeFlags.String | TypeFlags.Boolean)) !== 0);
-        }
-
-        /**
          * Return true if type was inferred from an object literal, written as an object type literal, or is the shape of a module
          * with no call or construct signatures.
          */
@@ -25338,12 +25313,12 @@ namespace ts {
             }
 
             function narrowTypeByDiscriminantProperty(type: Type, access: AccessExpression | BindingElement | ParameterDeclaration, operator: SyntaxKind, value: Expression, assumeTrue: boolean) {
-                if ((operator === SyntaxKind.EqualsEqualsEqualsToken || operator === SyntaxKind.ExclamationEqualsEqualsToken) && type.flags & TypeFlags.Union) {
+                if ((operator === SyntaxKind.EqualsEqualsEqualsToken || operator === SyntaxKind.EqualsEqualsToken || operator === SyntaxKind.ExclamationEqualsEqualsToken || operator === SyntaxKind.ExclamationEqualsToken) && type.flags & TypeFlags.Union) {
                     const keyPropertyName = getKeyPropertyName(type as UnionType);
                     if (keyPropertyName && keyPropertyName === getAccessedPropertyName(access)) {
                         const candidate = getConstituentTypeForKeyType(type as UnionType, getTypeOfExpression(value));
                         if (candidate) {
-                            return operator === (assumeTrue ? SyntaxKind.EqualsEqualsEqualsToken : SyntaxKind.ExclamationEqualsEqualsToken) ? candidate :
+                            return (assumeTrue ? operator === SyntaxKind.EqualsEqualsEqualsToken || operator === SyntaxKind.EqualsEqualsToken : operator === SyntaxKind.ExclamationEqualsEqualsToken || operator === SyntaxKind.ExclamationEqualsToken) ? candidate :
                                 isUnitType(getTypeOfPropertyOfType(candidate, keyPropertyName) || unknownType) ? removeType(type, candidate) :
                                 type;
                         }
@@ -25516,7 +25491,7 @@ namespace ts {
                 // When operator is == and type of value is null or undefined, null and undefined is removed from type of obj in false branch.
                 // When operator is != and type of value is null or undefined, null and undefined is removed from type of obj in true branch.
                 const equalsOperator = operator === SyntaxKind.EqualsEqualsToken || operator === SyntaxKind.EqualsEqualsEqualsToken;
-                const nullableFlags = operator === SyntaxKind.EqualsEqualsToken || operator === SyntaxKind.ExclamationEqualsToken ? TypeFlags.Nullable : TypeFlags.Undefined;
+                const nullableFlags = TypeFlags.Undefined;
                 const valueType = getTypeOfExpression(value);
                 // Note that we include any and unknown in the exclusion test because their domain includes null and undefined.
                 const removeNullable = equalsOperator !== assumeTrue && everyType(valueType, t => !!(t.flags & nullableFlags)) ||
@@ -25532,20 +25507,17 @@ namespace ts {
                     assumeTrue = !assumeTrue;
                 }
                 const valueType = getTypeOfExpression(value);
-                const doubleEquals = operator === SyntaxKind.EqualsEqualsToken || operator === SyntaxKind.ExclamationEqualsToken;
                 if (valueType.flags & TypeFlags.Nullable) {
                     if (!strictNullChecks) {
                         return type;
                     }
-                    const facts = doubleEquals ?
-                        assumeTrue ? TypeFacts.EQUndefinedOrNull : TypeFacts.NEUndefinedOrNull :
-                        valueType.flags & TypeFlags.Null ?
+                    const facts = valueType.flags & TypeFlags.Null ?
                             assumeTrue ? TypeFacts.EQNull : TypeFacts.NENull :
                             assumeTrue ? TypeFacts.EQUndefined : TypeFacts.NEUndefined;
                     return getAdjustedTypeWithFacts(type, facts);
                 }
                 if (assumeTrue) {
-                    if (!doubleEquals && (type.flags & TypeFlags.Unknown || someType(type, isEmptyAnonymousObjectType))) {
+                    if (type.flags & TypeFlags.Unknown || someType(type, isEmptyAnonymousObjectType)) {
                         if (valueType.flags & (TypeFlags.Primitive | TypeFlags.NonPrimitive) || isEmptyAnonymousObjectType(valueType)) {
                             return valueType;
                         }
@@ -25553,7 +25525,7 @@ namespace ts {
                             return nonPrimitiveType;
                         }
                     }
-                    const filteredType = filterType(type, t => areTypesComparable(t, valueType) || doubleEquals && isCoercibleUnderDoubleEquals(t, valueType));
+                    const filteredType = filterType(type, t => areTypesComparable(t, valueType));
                     return replacePrimitivesWithLiterals(filteredType, valueType);
                 }
                 if (isUnitType(valueType)) {
